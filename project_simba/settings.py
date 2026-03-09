@@ -16,7 +16,7 @@ SECRET_KEY = os.environ.get(
 DEBUG = True  # Set to False in production
 
 ALLOWED_HOSTS = [
-    'jobcard-factory.onrender.com',
+    'jobcardforms.onrender.com',
     '127.0.0.1',
     'localhost',
 ]
