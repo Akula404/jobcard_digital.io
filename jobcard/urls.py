@@ -4,6 +4,8 @@ from . import views
 app_name = 'jobcard'
 
 urlpatterns = [
+    path('', views.jobcard_operator_entry, name='jobcard_home'),  # <-- ADD THIS
+
     path('operator/', views.jobcard_operator_entry, name='operator_entry'),
     path('success/', views.jobcard_success, name='jobcard_success'),
     path('create/', views.jobcard_operator_entry, name='jobcard_create'),
