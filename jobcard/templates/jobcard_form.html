@@ -119,9 +119,10 @@ Total Output: <span id="totalOutput">0</span>
 {{ form.supervisor_signature.label_tag }} {{ form.supervisor_signature }}
 </div>
 
-<button type="submit" class="submit-btn">Submit</button>
+<button type="submit" class="submit-btn" onclick="syncFields()">Submit</button>
 
 </form>
+
 
 <script>
 const totalOutputEl = document.getElementById("totalOutput")
@@ -180,6 +181,13 @@ function loadJobcard(){
         updateTotal()
     })
     .catch(err => console.error("Error loading JobCard:", err))
+}
+function syncFields(){
+    document.getElementById("id_line").value =
+        document.getElementById("lineSelect").value;
+
+    document.getElementById("id_shift").value =
+        document.getElementById("shiftSelect").value;
 }
 </script>
 

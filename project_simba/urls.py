@@ -4,18 +4,14 @@ URL configuration for project_simba project.
 
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # include jobcard app urls
-    path('jobcard/', include('jobcard.urls', namespace='jobcard')),
-
-    # Redirect root URL → jobcard create page
-    path('', lambda request: redirect('jobcard:jobcard_create')),
+    # Jobcard system URLs
+    path('jobcard/', include(('jobcard.urls', 'jobcard'), namespace='jobcard')),
 ]
 
 # Serve static files during development
