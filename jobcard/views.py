@@ -1,3 +1,5 @@
+from urllib import request
+
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
@@ -63,6 +65,8 @@ def export_jobcards_csv(request):
 # -----------------------------
 # TEMP SUBMISSION (unchanged)
 # -----------------------------
+#from django.views.decorators.csrf import csrf_exempt
+#@csrf_exempt
 def temp_submission(request):
     user = request.user if request.user.is_authenticated else None
     active = ActiveShift.objects.first()
@@ -140,6 +144,7 @@ def supervisor_dashboard(request):
     active_shift = active.shift if active else "Day"
     active_date = active.date if active else timezone.localdate()
     shift = request.GET.get("shift", active_shift)
+
     if shift.lower() == "night":
         now = timezone.localtime()
         cutoff = time(5, 30)
@@ -163,6 +168,7 @@ def supervisor_dashboard(request):
         if filled_lines >= len(lines):
             global_locked_hours.append(h)
 
+    # Prepare dashboard data
     dashboard_data = {}
     for sub in submissions:
         key = f"{sub.line}_{sub.shift}"
@@ -172,7 +178,20 @@ def supervisor_dashboard(request):
         hours = [getattr(sub, f"hour{i}") or 0 for i in range(1,12)]
         for i in range(11):
             dashboard_data[key]["hour_totals"][i] += hours[i]
-        dashboard_data[key]["total"] += sub.total_output()
+        dashboard_data[key]["total"] += sum(hours)  # total output
+
+    # AJAX request
+    if request.GET.get("ajax") == "1":
+        clean_data = {}
+        for key, data in dashboard_data.items():
+            clean_data[key] = {
+                "hour_totals": data["hour_totals"],
+                "total": data["total"]
+            }
+        return JsonResponse({
+            "dashboard_data": clean_data,
+            "global_locked_hours": global_locked_hours
+        }, safe=True)
 
     return render(request, "supervisor_dashboard.html", {
         "dashboard_data": dashboard_data,
@@ -180,7 +199,6 @@ def supervisor_dashboard(request):
         "hour_range": range(1,12),
         "shift": shift
     })
-
 # -----------------------------
 # RESET SHIFT (unchanged)
 # -----------------------------

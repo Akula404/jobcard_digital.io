@@ -6,7 +6,6 @@
 <title>Supervisor Dashboard</title>
 
 <style>
-
 /* ------------------ GLOBAL ------------------ */
 body{
     font-family:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
@@ -217,7 +216,6 @@ td{
         align-items:flex-start;
     }
 }
-
 </style>
 </head>
 <body>
@@ -288,6 +286,7 @@ td{
 
 {% for val in data.hour_totals %}
 <td class="hour-cell"
+    id="{{ key }}-hour{{ forloop.counter }}"
     data-key="{{ key }}"
     data-hour="{{ forloop.counter }}">
     {{ val }}
@@ -295,6 +294,7 @@ td{
 {% endfor %}
 
 <td class="total-value"
+    id="{{ key }}-total"
     data-total="{{ key }}">
     {{ data.total }}
 </td>
@@ -349,7 +349,6 @@ function fetchDashboard() {
     fetch(`${window.location.pathname}?ajax=1&shift=${shift}`)
         .then(r => r.json())
         .then(data => {
-
             if (data.global_locked_hours) {
                 document.querySelectorAll(".hour-cell").forEach(cell => {
                     const h = parseInt(cell.dataset.hour);
@@ -363,16 +362,12 @@ function fetchDashboard() {
 
             if (data.dashboard_data) {
                 Object.entries(data.dashboard_data).forEach(([key, val]) => {
-
                     val.hour_totals.forEach((num, i) => {
-                        const el = document.querySelector(
-                            `[data-key="${key}"][data-hour="${i + 1}"]`
-                        );
-                        if (el) el.textContent = num;
+                        const el = document.getElementById(`${key}-hour${i+1}`);
+                        if (el) el.textContent = num ?? 0;
                     });
-
-                    const total = document.querySelector(`[data-total="${key}"]`);
-                    if (total) total.textContent = val.total;
+                    const totalEl = document.getElementById(`${key}-total`);
+                    if (totalEl) totalEl.textContent = val.total ?? 0;
                 });
             }
 
@@ -381,7 +376,8 @@ function fetchDashboard() {
         .finally(() => isFetching = false);
 }
 
-setInterval(fetchDashboard, 3000);
+// Fetch hourly updates every 1 second
+setInterval(fetchDashboard, 2000);
 </script>
 
 </body>
