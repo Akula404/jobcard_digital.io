@@ -140,7 +140,7 @@ input.locked {
             <span>H1</span><span>H2</span><span>H3</span>
             <span>H4</span><span>H5</span><span>H6</span>
             <span>H7</span><span>H8</span><span>H9</span>
-            <span>H10</span><span>H11</span>
+            <span>H10</span><span>H11</span><span>H12</span>
         </div>
 
         <!-- Inputs -->
@@ -156,6 +156,7 @@ input.locked {
             <input type="number" name="hour9" value="{{ obj.hour9|default_if_none:'' }}" {% if obj.hour9 %}disabled class="locked"{% endif %}>
             <input type="number" name="hour10" value="{{ obj.hour10|default_if_none:'' }}" {% if obj.hour10 %}disabled class="locked"{% endif %}>
             <input type="number" name="hour11" value="{{ obj.hour11|default_if_none:'' }}" {% if obj.hour11 %}disabled class="locked"{% endif %}>
+            <input type="number" name="hour12" value="{{ obj.hour12|default_if_none:'' }}" {% if obj.hour12 %}disabled class="locked"{% endif %}>
         </div>
 
         <!-- Total -->

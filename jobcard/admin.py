@@ -43,7 +43,7 @@ class JobCardAdmin(admin.ModelAdmin):
         ('Hourly Output', {
             'fields': (
                 'hour1', 'hour2', 'hour3', 'hour4', 'hour5',
-                'hour6', 'hour7', 'hour8', 'hour9', 'hour10', 'hour11',
+                'hour6', 'hour7', 'hour8', 'hour9', 'hour10', 'hour11', 'hour12'
                 'total_output_display'
             )
         }),

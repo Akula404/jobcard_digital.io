@@ -50,19 +50,38 @@ class JobCard(models.Model):
     hour9 = models.PositiveIntegerField(default=0)
     hour10 = models.PositiveIntegerField(default=0)
     hour11 = models.PositiveIntegerField(default=0)
+    hour12 = models.PositiveIntegerField(default=0)
+    
 
-    # Rejects
-    jar = models.PositiveIntegerField(default=0)
-    cap = models.PositiveIntegerField(default=0)
-    front_label = models.PositiveIntegerField(default=0)
-    back_label = models.PositiveIntegerField(default=0)
-    carton = models.PositiveIntegerField(default=0)
-    sleeve = models.PositiveIntegerField(default=0)
-    sticker = models.PositiveIntegerField(default=0)
-    tube = models.PositiveIntegerField(default=0)
-    packets = models.PositiveIntegerField(default=0)
-    roll_on_ball = models.PositiveIntegerField(default=0)
-    jar_pump = models.PositiveIntegerField(default=0)
+# -----------------------------
+# DAMAGES (Operator-caused)
+# -----------------------------
+    jar_damage = models.PositiveIntegerField(default=0)
+    cap_damage = models.PositiveIntegerField(default=0)
+    front_label_damage = models.PositiveIntegerField(default=0)
+    back_label_damage = models.PositiveIntegerField(default=0)
+    carton_damage = models.PositiveIntegerField(default=0)
+    sleeve_damage = models.PositiveIntegerField(default=0)
+    sticker_damage = models.PositiveIntegerField(default=0)
+    tube_damage = models.PositiveIntegerField(default=0)
+    packets_damage = models.PositiveIntegerField(default=0)
+    roll_on_ball_damage = models.PositiveIntegerField(default=0)
+    jar_pump_damage = models.PositiveIntegerField(default=0)
+
+    # -----------------------------
+    # REJECTS (Supplier-caused)
+    # -----------------------------
+    jar_reject = models.PositiveIntegerField(default=0)
+    cap_reject = models.PositiveIntegerField(default=0)
+    front_label_reject = models.PositiveIntegerField(default=0)
+    back_label_reject = models.PositiveIntegerField(default=0)
+    carton_reject = models.PositiveIntegerField(default=0)
+    sleeve_reject = models.PositiveIntegerField(default=0)
+    sticker_reject = models.PositiveIntegerField(default=0)
+    tube_reject = models.PositiveIntegerField(default=0)
+    packets_reject = models.PositiveIntegerField(default=0)
+    roll_on_ball_reject = models.PositiveIntegerField(default=0)
+    jar_pump_reject = models.PositiveIntegerField(default=0)
 
     # Personnel
     operator_names = models.TextField()
@@ -75,8 +94,24 @@ class JobCard(models.Model):
         return sum([
             self.hour1, self.hour2, self.hour3, self.hour4, self.hour5,
             self.hour6, self.hour7, self.hour8, self.hour9, self.hour10,
-            self.hour11
+            self.hour11, self.hour12
         ])
+    
+    def total_damage(self):
+        return sum([
+            self.jar_damage, self.cap_damage, self.front_label_damage,
+            self.back_label_damage, self.carton_damage, self.sleeve_damage,
+            self.sticker_damage, self.tube_damage, self.packets_damage,
+            self.roll_on_ball_damage, self.jar_pump_damage
+    ])
+
+    def total_reject(self):
+        return sum([
+            self.jar_reject, self.cap_reject, self.front_label_reject,
+            self.back_label_reject, self.carton_reject, self.sleeve_reject,
+            self.sticker_reject, self.tube_reject, self.packets_reject,
+            self.roll_on_ball_reject, self.jar_pump_reject
+    ])
 
     def efficiency(self):
         if self.target_quantity == 0:
@@ -121,6 +156,7 @@ class TempSubmission(models.Model):
     hour9 = models.PositiveIntegerField(default=0)
     hour10 = models.PositiveIntegerField(default=0)
     hour11 = models.PositiveIntegerField(default=0)
+    hour12 = models.PositiveIntegerField(default=0)
 
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -129,7 +165,7 @@ class TempSubmission(models.Model):
         return sum([
             self.hour1, self.hour2, self.hour3, self.hour4, self.hour5,
             self.hour6, self.hour7, self.hour8, self.hour9, self.hour10,
-            self.hour11
+            self.hour11, self.hour12
         ])
 
     # ---------- META ----------

@@ -84,7 +84,7 @@ textarea { min-height:60px; }
 {{ form.hour1 }} {{ form.hour2 }} {{ form.hour3 }}
 {{ form.hour4 }} {{ form.hour5 }} {{ form.hour6 }}
 {{ form.hour7 }} {{ form.hour8 }} {{ form.hour9 }}
-{{ form.hour10 }} {{ form.hour11 }}
+{{ form.hour10 }} {{ form.hour11 }} {{ form.hour12 }}
 </div>
 
 <div class="total-output">
@@ -92,21 +92,54 @@ Total Output: <span id="totalOutput">0</span>
 </div>
 </div>
 
-<!-- Damages -->
+<!-- Damages / Rejects -->
 <div class="section damages">
-<h2>Damages / Rejects</h2>
-<div class="damage-grid">
-{{ form.jar.label_tag }} {{ form.jar }}
-{{ form.cap.label_tag }} {{ form.cap }}
-{{ form.front_label.label_tag }} {{ form.front_label }}
-{{ form.back_label.label_tag }} {{ form.back_label }}
-{{ form.carton.label_tag }} {{ form.carton }}
-{{ form.sleeve.label_tag }} {{ form.sleeve }}
-{{ form.sticker.label_tag }} {{ form.sticker }}
-{{ form.tube.label_tag }} {{ form.tube }}
-{{ form.packets.label_tag }} {{ form.packets }}
-{{ form.roll_on_ball.label_tag }} {{ form.roll_on_ball }}
-{{ form.jar_pump.label_tag }} {{ form.jar_pump }}
+<h2>Damages & Rejects</h2>
+
+<div style="display:flex; gap:30px; flex-wrap:wrap;">
+
+    <!-- DAMAGES COLUMN -->
+    <div style="flex:1; min-width:300px;">
+        <h3 style="color:#c0392b;">Damages</h3>
+        <div class="damage-grid">
+            {{ form.jar_damage.label_tag }} {{ form.jar_damage }}
+            {{ form.cap_damage.label_tag }} {{ form.cap_damage }}
+            {{ form.front_label_damage.label_tag }} {{ form.front_label_damage }}
+            {{ form.back_label_damage.label_tag }} {{ form.back_label_damage }}
+            {{ form.carton_damage.label_tag }} {{ form.carton_damage }}
+            {{ form.sleeve_damage.label_tag }} {{ form.sleeve_damage }}
+            {{ form.sticker_damage.label_tag }} {{ form.sticker_damage }}
+            {{ form.tube_damage.label_tag }} {{ form.tube_damage }}
+            {{ form.packets_damage.label_tag }} {{ form.packets_damage }}
+            {{ form.roll_on_ball_damage.label_tag }} {{ form.roll_on_ball_damage }}
+            {{ form.jar_pump_damage.label_tag }} {{ form.jar_pump_damage }}
+        </div>
+        <div id="totalDamage" style="margin-top:15px; font-weight:bold; color:#c0392b;">
+            Total Damage: 0
+        </div>
+    </div>
+
+    <!-- REJECTS COLUMN -->
+    <div style="flex:1; min-width:300px;">
+        <h3 style="color:#8e44ad;">Rejects</h3>
+        <div class="damage-grid">
+            {{ form.jar_reject.label_tag }} {{ form.jar_reject }}
+            {{ form.cap_reject.label_tag }} {{ form.cap_reject }}
+            {{ form.front_label_reject.label_tag }} {{ form.front_label_reject }}
+            {{ form.back_label_reject.label_tag }} {{ form.back_label_reject }}
+            {{ form.carton_reject.label_tag }} {{ form.carton_reject }}
+            {{ form.sleeve_reject.label_tag }} {{ form.sleeve_reject }}
+            {{ form.sticker_reject.label_tag }} {{ form.sticker_reject }}
+            {{ form.tube_reject.label_tag }} {{ form.tube_reject }}
+            {{ form.packets_reject.label_tag }} {{ form.packets_reject }}
+            {{ form.roll_on_ball_reject.label_tag }} {{ form.roll_on_ball_reject }}
+            {{ form.jar_pump_reject.label_tag }} {{ form.jar_pump_reject }}
+        </div>
+        <div id="totalReject" style="margin-top:15px; font-weight:bold; color:#8e44ad;">
+            Total Reject: 0
+        </div>
+    </div>
+
 </div>
 </div>
 
@@ -123,11 +156,10 @@ Total Output: <span id="totalOutput">0</span>
 
 </form>
 
-
 <script>
+// HOURLY OUTPUT
 const totalOutputEl = document.getElementById("totalOutput")
-const hours = [...Array(11)].map((_,i)=>document.getElementById(`id_hour${i+1}`))
-
+const hours = [...Array(12)].map((_,i)=>document.getElementById(`id_hour${i+1}`))
 function updateTotal(){
     let t=0
     hours.forEach(h=>{ if(h.value) t+=parseInt(h.value)||0 })
@@ -136,35 +168,60 @@ function updateTotal(){
 hours.forEach(h=>h.addEventListener("input", updateTotal))
 updateTotal()
 
+// DAMAGE & REJECT LIVE TOTALS
+const damageFields = [
+    "id_jar_damage","id_cap_damage","id_front_label_damage","id_back_label_damage",
+    "id_carton_damage","id_sleeve_damage","id_sticker_damage","id_tube_damage",
+    "id_packets_damage","id_roll_on_ball_damage","id_jar_pump_damage"
+];
+const rejectFields = [
+    "id_jar_reject","id_cap_reject","id_front_label_reject","id_back_label_reject",
+    "id_carton_reject","id_sleeve_reject","id_sticker_reject","id_tube_reject",
+    "id_packets_reject","id_roll_on_ball_reject","id_jar_pump_reject"
+];
+
+const totalDamageEl = document.getElementById("totalDamage")
+const totalRejectEl = document.getElementById("totalReject")
+
+function sumFields(ids){
+    let total=0;
+    ids.forEach(id=>{
+        const el = document.getElementById(id)
+        if(el && el.value) total += parseInt(el.value)||0
+    })
+    return total
+}
+
+function updateDamageRejectTotals(){
+    totalDamageEl.textContent = "Total Damage: "+sumFields(damageFields)
+    totalRejectEl.textContent = "Total Reject: "+sumFields(rejectFields)
+}
+
+[...damageFields, ...rejectFields].forEach(id=>{
+    const el = document.getElementById(id)
+    if(el) el.addEventListener("input", updateDamageRejectTotals)
+})
+
+updateDamageRejectTotals()
+
+// LOAD JOBCARD
 function loadJobcard(){
     const line = document.getElementById("lineSelect").value;
     const shift = document.getElementById("shiftSelect").value;
-
-    if(!line || !shift){
-        alert("Select Line and Shift first");
-        return;
-    }
+    if(!line || !shift){ alert("Select Line and Shift first"); return; }
 
     fetch(`/jobcard/get-jobcard/?line=${line}&shift=${shift}`)
     .then(res => res.json())
     .then(data => {
+        if(data.error){ alert(data.error); return; }
 
-        if(data.error){
-            alert(data.error);
-            return;
-        }
-
-        // Hidden fields
         document.getElementById("id_line").value = line
         document.getElementById("id_shift").value = shift
-
-        // Job details
         document.getElementById("id_wo_number").value = data.wo_number
         document.getElementById("id_product_code").value = data.product_code
         document.getElementById("id_product_name").value = data.product_name
         document.getElementById("id_target_quantity").value = data.target_quantity
 
-        // Operator / Supervisor names → READONLY
         const operatorField = document.getElementById("id_operator_names")
         const supervisorField = document.getElementById("id_supervisor_names")
         operatorField.value = data.operator_names
@@ -172,20 +229,19 @@ function loadJobcard(){
         operatorField.readOnly = true
         supervisorField.readOnly = true
 
-        // Hourly data
         data.hours.forEach((val,i)=>{
             const el = document.getElementById(`id_hour${i+1}`)
             if(el) el.value = val
         })
-
         updateTotal()
+        updateDamageRejectTotals()
     })
     .catch(err => console.error("Error loading JobCard:", err))
 }
+
 function syncFields(){
     document.getElementById("id_line").value =
         document.getElementById("lineSelect").value;
-
     document.getElementById("id_shift").value =
         document.getElementById("shiftSelect").value;
 }

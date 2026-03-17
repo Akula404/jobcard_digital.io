@@ -43,7 +43,7 @@ def export_jobcards_csv(request):
     writer = csv.writer(response)
     header = [
         'Date', 'Line', 'Shift', 'WO Number', 'Product Code', 'Product Name', 'Target Quantity',
-        'Hour1','Hour2','Hour3','Hour4','Hour5','Hour6','Hour7','Hour8','Hour9','Hour10','Hour11',
+        'Hour1','Hour2','Hour3','Hour4','Hour5','Hour6','Hour7','Hour8','Hour9','Hour10','Hour11', 'Hour12',
         'Total Output',
         'Jar','Cap','Front Label','Back Label','Carton','Sleeve','Sticker','Tube','Packets','Roll On Ball','Jar Pump',
         'Operators','Supervisors'
@@ -53,7 +53,7 @@ def export_jobcards_csv(request):
     for jc in jobcards:
         row = [
             jc.date, jc.line, jc.shift, jc.wo_number, jc.product_code, jc.product_name, jc.target_quantity,
-            jc.hour1, jc.hour2, jc.hour3, jc.hour4, jc.hour5, jc.hour6, jc.hour7, jc.hour8, jc.hour9, jc.hour10, jc.hour11,
+            jc.hour1, jc.hour2, jc.hour3, jc.hour4, jc.hour5, jc.hour6, jc.hour7, jc.hour8, jc.hour9, jc.hour10, jc.hour11, jc.hour12,
             jc.total_output(),
             jc.jar, jc.cap, jc.front_label, jc.back_label, jc.carton, jc.sleeve, jc.sticker, jc.tube, jc.packets, jc.roll_on_ball, jc.jar_pump,
             jc.operator_names, jc.supervisor_names
@@ -95,7 +95,7 @@ def temp_submission(request):
             line=line
         )
         updated_fields = []
-        for i in range(1, 12):
+        for i in range(1, 13):
             field = f"hour{i}"
             new_val = request.POST.get(field)
             old_val = getattr(obj, field)
@@ -124,7 +124,7 @@ def temp_submission(request):
             line=line
         )
         if created:
-            for i in range(1, 12):
+            for i in range(1, 13):
                 setattr(obj, f"hour{i}", 0)
             obj.save()
         form = TempSubmissionForm(instance=obj)
@@ -163,7 +163,7 @@ def supervisor_dashboard(request):
     lines = [l[0] for l in LINE_CHOICES]
     global_locked_hours = []
 
-    for h in range(1, 12):
+    for h in range(1, 13):
         filled_lines = submissions.exclude(**{f"hour{h}__isnull": True}).exclude(**{f"hour{h}": 0}).values("line").distinct().count()
         if filled_lines >= len(lines):
             global_locked_hours.append(h)
@@ -173,10 +173,10 @@ def supervisor_dashboard(request):
     for sub in submissions:
         key = f"{sub.line}_{sub.shift}"
         if key not in dashboard_data:
-            dashboard_data[key] = {"submissions": [], "hour_totals":[0]*11, "total":0}
+            dashboard_data[key] = {"submissions": [], "hour_totals":[0]*12, "total":0}
         dashboard_data[key]["submissions"].append(sub)
-        hours = [getattr(sub, f"hour{i}") or 0 for i in range(1,12)]
-        for i in range(11):
+        hours = [getattr(sub, f"hour{i}") or 0 for i in range(1,13)]
+        for i in range(12):
             dashboard_data[key]["hour_totals"][i] += hours[i]
         dashboard_data[key]["total"] += sum(hours)  # total output
 
@@ -196,7 +196,7 @@ def supervisor_dashboard(request):
     return render(request, "supervisor_dashboard.html", {
         "dashboard_data": dashboard_data,
         "today": target_date,
-        "hour_range": range(1,12),
+        "hour_range": range(1,13),
         "shift": shift
     })
 # -----------------------------
@@ -238,7 +238,7 @@ def finalize_shift(request, line, shift):
     )
     aggregated_data = [{
         "operator": s.operator.username if s.operator else "Anonymous",
-        "hours": [getattr(s, f"hour{i}") or 0 for i in range(1,12)],
+        "hours": [getattr(s, f"hour{i}") or 0 for i in range(1,13)],
         "total": s.total_output()
     } for s in submissions]
     shift_submission, created = ShiftSubmission.objects.get_or_create(
@@ -312,7 +312,7 @@ def jobcard_operator_entry(request):
                     shift__iexact=shift
                 ).first()
                 if temp_data:
-                    for i in range(1, 12):
+                    for i in range(1, 13):
                         setattr(jobcard, f"hour{i}", getattr(temp_data, f"hour{i}", 0))
                     jobcard.save()
 
@@ -409,7 +409,7 @@ def get_jobcard(request):
     ).first()
 
     hours = []
-    for i in range(1, 12):
+    for i in range(1, 13):  # include hour12 for prepopulation
         if temp and getattr(temp, f"hour{i}", None) is not None:
             hours.append(getattr(temp, f"hour{i}"))
         else:

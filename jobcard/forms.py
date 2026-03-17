@@ -22,7 +22,7 @@ class JobCardForm(forms.ModelForm):
             'hour1': forms.NumberInput(), 'hour2': forms.NumberInput(), 'hour3': forms.NumberInput(),
             'hour4': forms.NumberInput(), 'hour5': forms.NumberInput(), 'hour6': forms.NumberInput(),
             'hour7': forms.NumberInput(), 'hour8': forms.NumberInput(), 'hour9': forms.NumberInput(),
-            'hour10': forms.NumberInput(), 'hour11': forms.NumberInput(),
+            'hour10': forms.NumberInput(), 'hour11': forms.NumberInput(), 'hour12': forms.NumberInput(),
 
             # Damages
             'jar': forms.NumberInput(), 'cap': forms.NumberInput(), 'front_label': forms.NumberInput(),
@@ -45,7 +45,7 @@ class TempSubmissionForm(forms.ModelForm):
         model = TempSubmission
         fields = [
             "hour1","hour2","hour3","hour4","hour5",
-            "hour6","hour7","hour8","hour9","hour10","hour11"
+            "hour6","hour7","hour8","hour9","hour10","hour11", "hour12"
         ]
 
 # -----------------------------
