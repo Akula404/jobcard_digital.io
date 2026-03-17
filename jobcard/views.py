@@ -10,6 +10,7 @@ from .models import TempSubmission, ShiftSubmission, JobCard, LINE_CHOICES, Acti
 from datetime import timedelta, time
 import csv
 
+
 # -----------------------------
 # Helper function (kept for fallback safety only)
 # -----------------------------
