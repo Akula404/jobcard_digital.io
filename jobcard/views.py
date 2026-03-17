@@ -42,10 +42,17 @@ def export_jobcards_csv(request):
 
     writer = csv.writer(response)
     header = [
-        'Date', 'Line', 'Shift', 'WO Number', 'Product Code', 'Product Name', 'Target Quantity',
-        'Hour1','Hour2','Hour3','Hour4','Hour5','Hour6','Hour7','Hour8','Hour9','Hour10','Hour11', 'Hour12',
+        'Date','Line','Shift','WO Number','Product Code','Product Name','Target Quantity',
+        'Hour1','Hour2','Hour3','Hour4','Hour5','Hour6','Hour7','Hour8','Hour9','Hour10','Hour11','Hour12',
         'Total Output',
-        'Jar','Cap','Front Label','Back Label','Carton','Sleeve','Sticker','Tube','Packets','Roll On Ball','Jar Pump',
+        # Damages
+        'Jar Damage','Cap Damage','Front Label Damage','Back Label Damage','Carton Damage',
+        'Sleeve Damage','Sticker Damage','Tube Damage','Packets Damage','Roll On Ball Damage','Jar Pump Damage',
+        'Total Damage',
+        # Rejects
+        'Jar Reject','Cap Reject','Front Label Reject','Back Label Reject','Carton Reject',
+        'Sleeve Reject','Sticker Reject','Tube Reject','Packets Reject','Roll On Ball Reject','Jar Pump Reject',
+        'Total Reject',
         'Operators','Supervisors'
     ]
     writer.writerow(header)
@@ -55,7 +62,14 @@ def export_jobcards_csv(request):
             jc.date, jc.line, jc.shift, jc.wo_number, jc.product_code, jc.product_name, jc.target_quantity,
             jc.hour1, jc.hour2, jc.hour3, jc.hour4, jc.hour5, jc.hour6, jc.hour7, jc.hour8, jc.hour9, jc.hour10, jc.hour11, jc.hour12,
             jc.total_output(),
-            jc.jar, jc.cap, jc.front_label, jc.back_label, jc.carton, jc.sleeve, jc.sticker, jc.tube, jc.packets, jc.roll_on_ball, jc.jar_pump,
+            # Damages
+            jc.jar_damage, jc.cap_damage, jc.front_label_damage, jc.back_label_damage, jc.carton_damage,
+            jc.sleeve_damage, jc.sticker_damage, jc.tube_damage, jc.packets_damage, jc.roll_on_ball_damage, jc.jar_pump_damage,
+            jc.total_damage(),
+            # Rejects
+            jc.jar_reject, jc.cap_reject, jc.front_label_reject, jc.back_label_reject, jc.carton_reject,
+            jc.sleeve_reject, jc.sticker_reject, jc.tube_reject, jc.packets_reject, jc.roll_on_ball_reject, jc.jar_pump_reject,
+            jc.total_reject(),
             jc.operator_names, jc.supervisor_names
         ]
         writer.writerow(row)
