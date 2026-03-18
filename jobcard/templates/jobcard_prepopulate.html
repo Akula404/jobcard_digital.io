@@ -190,8 +190,16 @@ document.querySelectorAll("form input, form select").forEach(el => {
     el.addEventListener("change", saveDraft);
 });
 
-// LOAD DRAFT
+// LOAD DRAFT (ONLY if NO success message)
 window.addEventListener("load", () => {
+    const hasSuccessMessage = document.querySelector(".messages .success");
+
+    if (hasSuccessMessage) {
+        // SUCCESS → clear draft and DO NOT restore
+        localStorage.removeItem("jobcard_prepopulate_draft");
+        return;
+    }
+
     const draft = localStorage.getItem("jobcard_prepopulate_draft");
 
     if (draft) {
