@@ -58,5 +58,9 @@ body {
     <p>All prepopulated and operator-entered data has been saved for future reference.</p>
     <a href="{% url 'jobcard:operator_entry' %}">Enter Another JobCard</a>
 </div>
+<script>
+// Clear draft ONLY after successful submission page loads
+localStorage.removeItem("jobcard_draft");
+</script>
 </body>
 </html>

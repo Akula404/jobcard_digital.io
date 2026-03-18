@@ -247,5 +247,50 @@ function syncFields(){
 }
 </script>
 
+<script>
+// -----------------------------
+// SAVE FORM DATA (AUTO)
+// -----------------------------
+function saveDraft() {
+    const form = document.querySelector("form");
+    if (!form) return;
+
+    const formData = new FormData(form);
+    let data = {};
+
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
+
+    localStorage.setItem("jobcard_draft", JSON.stringify(data));
+}
+
+// Save whenever user types or changes anything
+document.querySelectorAll("form input, form select, form textarea").forEach(el => {
+    el.addEventListener("input", saveDraft);
+});
+
+
+// -----------------------------
+// LOAD DRAFT ON PAGE LOAD
+// -----------------------------
+window.addEventListener("load", () => {
+    const draft = localStorage.getItem("jobcard_draft");
+
+    if (draft) {
+        const data = JSON.parse(draft);
+
+        Object.keys(data).forEach(key => {
+            const field = document.querySelector(`[name="${key}"]`);
+            if (field) {
+                field.value = data[key];
+            }
+        });
+
+        console.log("Draft restored");
+    }
+});
+
+</script>
 </body>
 </html>
