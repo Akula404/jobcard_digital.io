@@ -9,6 +9,8 @@ from .forms import TempSubmissionForm, JobCardForm, JobCardPrepopulateForm
 from .models import TempSubmission, ShiftSubmission, JobCard, LINE_CHOICES, ActiveShift
 from datetime import timedelta, time
 import csv
+from django.utils.timezone import now
+from .models import ActiveShift
 
 
 # -----------------------------
@@ -46,11 +48,9 @@ def export_jobcards_csv(request):
         'Date','Line','Shift','WO Number','Product Code','Product Name','Target Quantity',
         'Hour1','Hour2','Hour3','Hour4','Hour5','Hour6','Hour7','Hour8','Hour9','Hour10','Hour11','Hour12',
         'Total Output',
-        # Damages
         'Jar Damage','Cap Damage','Front Label Damage','Back Label Damage','Carton Damage',
         'Sleeve Damage','Sticker Damage','Tube Damage','Packets Damage','Roll On Ball Damage','Jar Pump Damage',
         'Total Damage',
-        # Rejects
         'Jar Reject','Cap Reject','Front Label Reject','Back Label Reject','Carton Reject',
         'Sleeve Reject','Sticker Reject','Tube Reject','Packets Reject','Roll On Ball Reject','Jar Pump Reject',
         'Total Reject',
@@ -63,11 +63,9 @@ def export_jobcards_csv(request):
             jc.date, jc.line, jc.shift, jc.wo_number, jc.product_code, jc.product_name, jc.target_quantity,
             jc.hour1, jc.hour2, jc.hour3, jc.hour4, jc.hour5, jc.hour6, jc.hour7, jc.hour8, jc.hour9, jc.hour10, jc.hour11, jc.hour12,
             jc.total_output(),
-            # Damages
             jc.jar_damage, jc.cap_damage, jc.front_label_damage, jc.back_label_damage, jc.carton_damage,
             jc.sleeve_damage, jc.sticker_damage, jc.tube_damage, jc.packets_damage, jc.roll_on_ball_damage, jc.jar_pump_damage,
             jc.total_damage(),
-            # Rejects
             jc.jar_reject, jc.cap_reject, jc.front_label_reject, jc.back_label_reject, jc.carton_reject,
             jc.sleeve_reject, jc.sticker_reject, jc.tube_reject, jc.packets_reject, jc.roll_on_ball_reject, jc.jar_pump_reject,
             jc.total_reject(),
@@ -78,25 +76,21 @@ def export_jobcards_csv(request):
     return response
 
 # -----------------------------
-# TEMP SUBMISSION (unchanged)
+# TEMP SUBMISSION (FIXED SHIFT SOURCE ONLY)
 # -----------------------------
-#from django.views.decorators.csrf import csrf_exempt
-#@csrf_exempt
 def temp_submission(request):
     user = request.user if request.user.is_authenticated else None
     active = ActiveShift.objects.first()
-    shift = request.GET.get("shift") or (active.shift if active else "Day")
-    target_date = timezone.localdate()
-    if active:
-        if shift.lower() == "night":
-            cutoff = time(5, 30)
-            now = timezone.localtime()
-            if now.time() < cutoff:
-                target_date = now.date() - timedelta(days=1)
-            else:
-                target_date = now.date()
-        else:
-            target_date = now.date() if 'now' in locals() else active.date
+
+    if not active:
+        active = ActiveShift.objects.create(
+            shift="Day",
+            date=timezone.localdate()
+        )
+
+    shift = active.shift
+    target_date = active.date
+
     selected_line = request.GET.get("line")
     lines = [l[0] for l in LINE_CHOICES]
     forms_data = []
@@ -154,21 +148,21 @@ def temp_submission(request):
 # -----------------------------
 # SUPERVISOR DASHBOARD (unchanged)
 # -----------------------------
+# -----------------------------
+# SUPERVISOR DASHBOARD (FIXED - STRICT ACTIVE SHIFT ONLY)
+# -----------------------------
 def supervisor_dashboard(request):
     active = ActiveShift.objects.first()
-    active_shift = active.shift if active else "Day"
-    active_date = active.date if active else timezone.localdate()
-    shift = request.GET.get("shift", active_shift)
 
-    if shift.lower() == "night":
-        now = timezone.localtime()
-        cutoff = time(5, 30)
-        if now.time() < cutoff:
-            target_date = (now - timedelta(days=1)).date()
-        else:
-            target_date = now.date()
-    else:
-        target_date = timezone.localdate()
+    if not active:
+        active = ActiveShift.objects.create(
+            shift="Day",
+            date=timezone.localdate()
+        )
+
+    # ✅ FORCE SYSTEM SINGLE SOURCE OF TRUTH
+    shift = active.shift
+    target_date = active.date
 
     submissions = TempSubmission.objects.filter(
         date=target_date,
@@ -179,23 +173,31 @@ def supervisor_dashboard(request):
     global_locked_hours = []
 
     for h in range(1, 13):
-        filled_lines = submissions.exclude(**{f"hour{h}__isnull": True}).exclude(**{f"hour{h}": 0}).values("line").distinct().count()
+        filled_lines = submissions.exclude(**{f"hour{h}__isnull": True}) \
+                                  .exclude(**{f"hour{h}": 0}) \
+                                  .values("line").distinct().count()
         if filled_lines >= len(lines):
             global_locked_hours.append(h)
 
-    # Prepare dashboard data
     dashboard_data = {}
     for sub in submissions:
         key = f"{sub.line}_{sub.shift}"
         if key not in dashboard_data:
-            dashboard_data[key] = {"submissions": [], "hour_totals":[0]*12, "total":0}
+            dashboard_data[key] = {
+                "submissions": [],
+                "hour_totals": [0]*12,
+                "total": 0
+            }
+
         dashboard_data[key]["submissions"].append(sub)
-        hours = [getattr(sub, f"hour{i}") or 0 for i in range(1,13)]
+
+        hours = [getattr(sub, f"hour{i}") or 0 for i in range(1, 13)]
         for i in range(12):
             dashboard_data[key]["hour_totals"][i] += hours[i]
-        dashboard_data[key]["total"] += sum(hours)  # total output
 
-    # AJAX request
+        dashboard_data[key]["total"] += sum(hours)
+
+    # AJAX response
     if request.GET.get("ajax") == "1":
         clean_data = {}
         for key, data in dashboard_data.items():
@@ -203,6 +205,7 @@ def supervisor_dashboard(request):
                 "hour_totals": data["hour_totals"],
                 "total": data["total"]
             }
+
         return JsonResponse({
             "dashboard_data": clean_data,
             "global_locked_hours": global_locked_hours
@@ -211,9 +214,10 @@ def supervisor_dashboard(request):
     return render(request, "supervisor_dashboard.html", {
         "dashboard_data": dashboard_data,
         "today": target_date,
-        "hour_range": range(1,13),
+        "hour_range": range(1, 13),
         "shift": shift
     })
+
 # -----------------------------
 # RESET SHIFT (unchanged)
 # -----------------------------
@@ -221,23 +225,55 @@ def reset_shift(request):
     if request.method == "POST":
         shift = request.POST.get("shift")
         line = request.POST.get("line")
+
         active = ActiveShift.objects.first()
+
         if not active:
-            active = ActiveShift.objects.create(shift=shift, date=timezone.localdate())
+            active = ActiveShift.objects.create(
+                shift=shift,
+                date=timezone.localdate()
+            )
+
         temp_query = TempSubmission.objects.filter(
             shift=shift,
             date=active.date
         )
+
         if line:
             temp_query = temp_query.filter(line=line)
             temp_query.delete()
-            messages.success(request, f"✅ {shift} shift for line {line} has been reset successfully.")
+
+            messages.success(
+                request,
+                f"✅ {shift} shift for line {line} has been reset successfully."
+            )
+
+            # ✅ LINE RESET EVENT
+            active.event_type = "line_reset"
+            active.line = line
+
         else:
             temp_query.delete()
-            messages.success(request, f"✅ All lines for {shift} shift have been reset successfully.")
+
+            messages.success(
+                request,
+                f"✅ All lines for {shift} shift have been reset successfully."
+            )
+
+            # ✅ SHIFT RESET EVENT
+            active.event_type = "shift_start"
+            active.line = None
+
+        # ✅ COMMON UPDATE (CRITICAL FIX)
         active.shift = shift
-        active.date = timezone.localdate()
+        active.last_reset = timezone.now()
+
+        # 🔥 IMPORTANT: ensure event_type is never null
+        if not active.event_type:
+            active.event_type = "shift_start" if not line else "line_reset"
+
         active.save()
+
     return redirect("jobcard:supervisor_dashboard")
 
 # -----------------------------
@@ -268,12 +304,11 @@ def finalize_shift(request, line, shift):
     return redirect("jobcard:supervisor_dashboard")
 
 # -----------------------------
-# JOBCARD OPERATOR ENTRY (fix multiple WOs)
+# JOBCARD OPERATOR ENTRY (STRICT SHIFT MATCH)
 # -----------------------------
 def jobcard_operator_entry(request):
     active = ActiveShift.objects.first()
 
-    # FIX: if no active shift exists, create one instead of redirecting
     if not active:
         active = ActiveShift.objects.create(
             shift="Day",
@@ -296,7 +331,6 @@ def jobcard_operator_entry(request):
     if request.method == "POST":
         wo_number = request.POST.get("wo_number")
 
-        # Allow multiple WOs per line & shift
         existing = JobCard.objects.filter(
             date=jobcard_date,
             line=line,
@@ -324,7 +358,7 @@ def jobcard_operator_entry(request):
                 temp_data = TempSubmission.objects.filter(
                     date=jobcard_date,
                     line=line,
-                    shift__iexact=shift
+                    shift=shift
                 ).first()
                 if temp_data:
                     for i in range(1, 13):
@@ -352,12 +386,11 @@ def jobcard_success(request):
     return render(request, "success.html")
 
 # -----------------------------
-# JOBCARD PREPOPULATE (fix for multiple WOs)
+# JOBCARD PREPOPULATE (unchanged logic)
 # -----------------------------
 def jobcard_prepopulate(request):
     active = ActiveShift.objects.first()
 
-    # FIX: create shift if it doesn't exist instead of redirecting
     if not active:
         active = ActiveShift.objects.create(
             shift="Day",
@@ -397,7 +430,7 @@ def jobcard_prepopulate(request):
     return render(request, "jobcard_prepopulate.html", {"form": form})
 
 # -----------------------------
-# GET JOBCARD AJAX (load latest WO per line & shift)
+# GET JOBCARD AJAX (STRICT SHIFT MATCH)
 # -----------------------------
 def get_jobcard(request):
     line = request.GET.get("line")
@@ -413,18 +446,19 @@ def get_jobcard(request):
         line=line,
         shift=shift,
         date=target_date
-    ).order_by('-id').first()  # get latest WO
+    ).order_by('-id').first()
+
     if not job:
         return JsonResponse({"error": "No JobCard found for this line & shift."})
 
     temp = TempSubmission.objects.filter(
         date=target_date,
         line=line,
-        shift__iexact=shift
+        shift=shift
     ).first()
 
     hours = []
-    for i in range(1, 13):  # include hour12 for prepopulation
+    for i in range(1, 13):
         if temp and getattr(temp, f"hour{i}", None) is not None:
             hours.append(getattr(temp, f"hour{i}"))
         else:
@@ -446,3 +480,36 @@ def get_jobcard(request):
 # -----------------------------
 def custom_csrf_failure(request, reason=""):
     return render(request, "csrf_failure.html", status=403)
+
+# One more view to provide active shift info for frontend
+def get_active_shift(request):
+    active = ActiveShift.objects.first()
+
+    if not active:
+        return JsonResponse({"error": "No active shift"})
+
+    return JsonResponse({
+        "shift": active.shift,
+        "date": str(active.date),
+        "last_reset": str(active.last_reset) if active.last_reset else None,
+        "line": getattr(active, "line", None),
+        "event_type": getattr(active, "event_type", None),
+    })
+
+
+# ACTIVE SHIFT SETTER (for supervisor to change shift)
+def set_active_shift(request):
+    if request.method == "POST":
+        shift = request.POST.get("shift")
+
+        active = ActiveShift.objects.first()
+        if not active:
+            active = ActiveShift.objects.create(
+                shift=shift,
+                date=timezone.localdate()
+            )
+        else:
+            active.shift = shift
+            active.save()
+
+    return redirect("jobcard:supervisor_dashboard")

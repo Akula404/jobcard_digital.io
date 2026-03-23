@@ -230,7 +230,8 @@ td{
         <div class="control-group">
 
             <!-- SHIFT SELECT -->
-            <form method="get" class="control-card">
+            <form method="post" action="{% url 'jobcard:set_active_shift' %}" class="control-card">
+                {% csrf_token %}
                 <label>Shift</label>
                 <select name="shift" onchange="this.form.submit()">
                     <option value="Day" {% if shift == "Day" %}selected{% endif %}>Day</option>

@@ -235,6 +235,8 @@ class ActiveShift(models.Model):
     shift = models.CharField(max_length=10)
     date = models.DateField()
 
+    # ✅ FIX: Add timestamp to track when the shift was activated (for auto-reset logic)
+    last_reset = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.shift} — {self.date}"
-    

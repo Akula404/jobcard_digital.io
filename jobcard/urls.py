@@ -16,4 +16,6 @@ urlpatterns = [
     path('get-jobcard/', views.get_jobcard, name='get_jobcard'),
     path('export-jobcards-csv/', views.export_jobcards_csv, name='export_jobcards_csv'),
     path('reset-shift/', views.reset_shift, name='reset_shift'),
+    path('get-active-shift/', views.get_active_shift, name='get_active_shift'),
+    path('set-active-shift/', views.set_active_shift, name='set_active_shift'),
 ]
