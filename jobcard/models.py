@@ -13,7 +13,7 @@ LINE_CHOICES = [
     ('FL009', 'FL 009'),
     ('FL010', 'FL 010'),
     ('FL013', 'FL 013'),
-    ('FL015', 'FL 015'),
+    ('FL014', 'FL 014'),
     ('COPACK', 'CO-PACKING'),
 ]
 
@@ -35,10 +35,8 @@ class JobCard(models.Model):
     product_name = models.CharField(max_length=100)
     target_quantity = models.PositiveIntegerField(default=0)
 
-    # ✅ LOCK FIELD (prevents duplicate submissions)
     is_submitted = models.BooleanField(default=False)
 
-    # Hourly Output
     hour1 = models.PositiveIntegerField(default=0)
     hour2 = models.PositiveIntegerField(default=0)
     hour3 = models.PositiveIntegerField(default=0)
@@ -51,11 +49,7 @@ class JobCard(models.Model):
     hour10 = models.PositiveIntegerField(default=0)
     hour11 = models.PositiveIntegerField(default=0)
     hour12 = models.PositiveIntegerField(default=0)
-    
 
-# -----------------------------
-# DAMAGES (Operator-caused)
-# -----------------------------
     jar_damage = models.PositiveIntegerField(default=0)
     cap_damage = models.PositiveIntegerField(default=0)
     front_label_damage = models.PositiveIntegerField(default=0)
@@ -68,9 +62,6 @@ class JobCard(models.Model):
     roll_on_ball_damage = models.PositiveIntegerField(default=0)
     jar_pump_damage = models.PositiveIntegerField(default=0)
 
-    # -----------------------------
-    # REJECTS (Supplier-caused)
-    # -----------------------------
     jar_reject = models.PositiveIntegerField(default=0)
     cap_reject = models.PositiveIntegerField(default=0)
     front_label_reject = models.PositiveIntegerField(default=0)
@@ -83,13 +74,17 @@ class JobCard(models.Model):
     roll_on_ball_reject = models.PositiveIntegerField(default=0)
     jar_pump_reject = models.PositiveIntegerField(default=0)
 
-    # Personnel
     operator_names = models.TextField()
     supervisor_names = models.TextField()
     line_captain_signature = models.CharField(max_length=100)
     supervisor_signature = models.CharField(max_length=100)
 
-    # ---------- CALCULATED ----------
+    # ✅ FIX: Normalize FL015 → FL014
+    def save(self, *args, **kwargs):
+        if self.line == "FL015":
+            self.line = "FL014"
+        super().save(*args, **kwargs)
+
     def total_output(self):
         return sum([
             self.hour1, self.hour2, self.hour3, self.hour4, self.hour5,
@@ -103,7 +98,7 @@ class JobCard(models.Model):
             self.back_label_damage, self.carton_damage, self.sleeve_damage,
             self.sticker_damage, self.tube_damage, self.packets_damage,
             self.roll_on_ball_damage, self.jar_pump_damage
-    ])
+        ])
 
     def total_reject(self):
         return sum([
@@ -111,14 +106,13 @@ class JobCard(models.Model):
             self.back_label_reject, self.carton_reject, self.sleeve_reject,
             self.sticker_reject, self.tube_reject, self.packets_reject,
             self.roll_on_ball_reject, self.jar_pump_reject
-    ])
+        ])
 
     def efficiency(self):
         if self.target_quantity == 0:
             return 0
         return round((self.total_output() / self.target_quantity) * 100, 1)
 
-    # ---------- META ----------
     class Meta:
         ordering = ["-date", "line"]
         constraints = [
@@ -144,7 +138,6 @@ class TempSubmission(models.Model):
     line = models.CharField(max_length=10, choices=LINE_CHOICES, db_index=True)
     shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, db_index=True)
 
-    # Hourly
     hour1 = models.PositiveIntegerField(default=0)
     hour2 = models.PositiveIntegerField(default=0)
     hour3 = models.PositiveIntegerField(default=0)
@@ -160,7 +153,12 @@ class TempSubmission(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
-    # ---------- CALCULATED ----------
+    # ✅ FIX: Normalize FL015 → FL014
+    def save(self, *args, **kwargs):
+        if self.line == "FL015":
+            self.line = "FL014"
+        super().save(*args, **kwargs)
+
     def total_output(self):
         return sum([
             self.hour1, self.hour2, self.hour3, self.hour4, self.hour5,
@@ -168,17 +166,14 @@ class TempSubmission(models.Model):
             self.hour11, self.hour12
         ])
 
-    # ---------- META ----------
     class Meta:
         ordering = ["line", "shift"]
-
         constraints = [
             models.UniqueConstraint(
                 fields=["operator", "date", "line", "shift"],
                 name="unique_operator_submission"
             )
         ]
-
         indexes = [
             models.Index(fields=["date", "shift", "line"]),
         ]
@@ -202,9 +197,14 @@ class ShiftSubmission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # ✅ FIX: Normalize FL015 → FL014
+    def save(self, *args, **kwargs):
+        if self.line == "FL015":
+            self.line = "FL014"
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = ["-date"]
-
         constraints = [
             models.UniqueConstraint(
                 fields=["date", "shift", "line"],
@@ -225,7 +225,6 @@ class HourEntry(models.Model):
     is_locked = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # lock only if value exists AND is not zero
         if self.value not in [None, 0, 0.0]:
             self.is_locked = True
         super().save(*args, **kwargs)
@@ -234,8 +233,6 @@ class HourEntry(models.Model):
 class ActiveShift(models.Model):
     shift = models.CharField(max_length=10)
     date = models.DateField()
-
-    # ✅ FIX: Add timestamp to track when the shift was activated (for auto-reset logic)
     last_reset = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

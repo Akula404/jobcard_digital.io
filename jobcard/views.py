@@ -12,6 +12,23 @@ import csv
 from django.utils.timezone import now
 from .models import ActiveShift
 
+# Active shift / current date
+def ensure_active_shift_is_current(active):
+    current_time = timezone.localtime()
+
+    # ✅ Get correct production date based on shift
+    correct_date = get_production_date(active.shift, current_time)
+
+    # Only update if needed
+    if active.date != correct_date:
+        active.date = correct_date
+        active.last_reset = timezone.now()
+        active.event_type = "shift_start"
+        active.line = None
+        active.save()
+
+    return active
+
 
 # -----------------------------
 # Helper function (kept for fallback safety only)
@@ -79,7 +96,6 @@ def export_jobcards_csv(request):
 # TEMP SUBMISSION (FIXED SHIFT SOURCE ONLY)
 # -----------------------------
 def temp_submission(request):
-    user = request.user if request.user.is_authenticated else None
     active = ActiveShift.objects.first()
 
     if not active:
@@ -88,6 +104,8 @@ def temp_submission(request):
             date=timezone.localdate()
         )
 
+    active = ensure_active_shift_is_current(active)
+
     shift = active.shift
     target_date = active.date
 
@@ -95,47 +113,70 @@ def temp_submission(request):
     lines = [l[0] for l in LINE_CHOICES]
     forms_data = []
 
+    # ✅ FIX: REAL OPERATOR
+    if request.user.is_authenticated:
+        operator = request.user
+    else:
+        operator = None  # fallback (can be removed later if enforcing login)
+
+    # ---------------- AJAX SAVE ----------------
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         line = request.POST.get("line")
+
         obj, _ = TempSubmission.objects.get_or_create(
-            operator=user,
+            operator=operator,
             date=target_date,
             shift=shift,
             line=line
         )
+
         updated_fields = []
+
         for i in range(1, 13):
             field = f"hour{i}"
             new_val = request.POST.get(field)
             old_val = getattr(obj, field)
+
             if new_val in [None, ""]:
                 continue
+
             try:
                 new_val = float(new_val)
             except:
                 continue
+
             if old_val not in [None, 0, 0.0]:
-                return JsonResponse({"error": f"{field.upper()} already submitted and locked."}, status=403)
+                return JsonResponse(
+                    {"error": f"{field.upper()} already submitted and locked."},
+                    status=403
+                )
+
             if new_val == 0:
                 continue
+
             setattr(obj, field, new_val)
             updated_fields.append(i)
+
         obj.save()
         return JsonResponse({"success": True, "updated": updated_fields})
 
+    # ---------------- FORM LOAD ----------------
     for line in lines:
         if selected_line and line != selected_line:
             continue
+
         obj, created = TempSubmission.objects.get_or_create(
-            operator=user,
+            operator=operator,
             date=target_date,
             shift=shift,
             line=line
         )
+
         if created:
             for i in range(1, 13):
                 setattr(obj, f"hour{i}", 0)
             obj.save()
+
         form = TempSubmissionForm(instance=obj)
         forms_data.append((line, form, obj))
 
@@ -144,10 +185,6 @@ def temp_submission(request):
         "shift": shift,
         "selected_line": selected_line
     })
-
-# -----------------------------
-# SUPERVISOR DASHBOARD (unchanged)
-# -----------------------------
 # -----------------------------
 # SUPERVISOR DASHBOARD (FIXED - STRICT ACTIVE SHIFT ONLY)
 # -----------------------------
@@ -159,6 +196,8 @@ def supervisor_dashboard(request):
             shift="Day",
             date=timezone.localdate()
         )
+
+    active = ensure_active_shift_is_current(active)
 
     # ✅ FORCE SYSTEM SINGLE SOURCE OF TRUTH
     shift = active.shift
@@ -315,6 +354,8 @@ def jobcard_operator_entry(request):
             date=timezone.localdate()
         )
 
+    active = ensure_active_shift_is_current(active)
+
     shift = active.shift
     jobcard_date = active.date
     line = request.POST.get("line") or request.GET.get("line")
@@ -396,6 +437,8 @@ def jobcard_prepopulate(request):
             shift="Day",
             date=timezone.localdate()
         )
+
+    active = ensure_active_shift_is_current(active)
 
     shift = active.shift
     jobcard_date = active.date

@@ -13,7 +13,7 @@ SECRET_KEY = os.environ.get(
     'sp=!wkx3&j03nyt*+q87_ezcoe#)a9s)*9npk8$a5-yl98229$'  # fallback for local dev
 )
 
-DEBUG = False  # Set to False in production
+DEBUG = True  # Set to False in production
 
 ALLOWED_HOSTS = [
     'jobcardforms.onrender.com',
