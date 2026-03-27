@@ -2,26 +2,33 @@ import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
+
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# -----------------------------
+# BASE DIRECTORY
+# -----------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# -----------------------------
 # SECURITY
+# -----------------------------
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
-    'sp=!wkx3&j03nyt*+q87_ezcoe#)a9s)*9npk8$a5-yl98229$'  # fallback for local dev
+    'sp=!wkx3&j03nyt*+q87_ezcoe#)a9s)*9npk8$a5-yl98229$'  # fallback (dev only)
 )
 
-DEBUG = False  # Set to False in production
+DEBUG = False  # ALWAYS False on Render
 
 ALLOWED_HOSTS = [
     'jobcardforms.onrender.com',
-    '127.0.0.1',
     'localhost',
+    '127.0.0.1',
 ]
 
-# Application definition
+# -----------------------------
+# APPLICATIONS
+# -----------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -32,9 +39,12 @@ INSTALLED_APPS = [
     'jobcard',
 ]
 
+# -----------------------------
+# MIDDLEWARE
+# -----------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -43,12 +53,19 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# -----------------------------
+# URLS / WSGI
+# -----------------------------
 ROOT_URLCONF = 'project_simba.urls'
+WSGI_APPLICATION = 'project_simba.wsgi.application'
 
+# -----------------------------
+# TEMPLATES
+# -----------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # Add paths if you have custom templates
+        'DIRS': [],  # add custom dirs if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -61,61 +78,50 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'project_simba.wsgi.application'
-
-# Database
-# Uses Render DATABASE_URL or falls back to local SQLite
+# -----------------------------
+# DATABASE (Supabase / Render)
+# -----------------------------
 DATABASE_URL = os.environ.get("DATABASE_URL")
-
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    }
-else:
-    #Fallback to SQLite for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
 
 DATABASES = {
     "default": dj_database_url.parse(
         DATABASE_URL,
-        conn_max_age=0,
+        conn_max_age=600,
         ssl_require=True
     )
 }
 
-
-# Password validation
+# -----------------------------
+# PASSWORD VALIDATION
+# -----------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+# -----------------------------
+# INTERNATIONALIZATION
+# -----------------------------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Africa/Nairobi'
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
-# Static files
+# -----------------------------
+# STATIC FILES (Render)
+# -----------------------------
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # for collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key field type
+# -----------------------------
+# DEFAULT PK
+# -----------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+#postgresql://postgres.nffdugghmdjqjmomqiin:804%23%2FpoD%407%24@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true

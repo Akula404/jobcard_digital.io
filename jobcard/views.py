@@ -95,6 +95,10 @@ def export_jobcards_csv(request):
 # -----------------------------
 # TEMP SUBMISSION (FIXED SHIFT SOURCE ONLY)
 # -----------------------------
+#from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction, IntegrityError
+
+#@csrf_exempt
 def temp_submission(request):
     active = ActiveShift.objects.first()
 
@@ -113,69 +117,105 @@ def temp_submission(request):
     lines = [l[0] for l in LINE_CHOICES]
     forms_data = []
 
-    # ✅ FIX: REAL OPERATOR
-    if request.user.is_authenticated:
-        operator = request.user
-    else:
-        operator = None  # fallback (can be removed later if enforcing login)
+    # ✅ SAFE OPERATOR FIX (NO CRASH)
+    operator = request.user if request.user.is_authenticated else None
 
     # ---------------- AJAX SAVE ----------------
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         line = request.POST.get("line")
 
-        obj, _ = TempSubmission.objects.get_or_create(
-            operator=operator,
-            date=target_date,
-            shift=shift,
-            line=line
-        )
+        try:
+            # ✅ RETRY SAFE BLOCK
+            for _ in range(3):
+                try:
+                    with transaction.atomic():
+                        obj, _ = TempSubmission.objects.select_for_update().get_or_create(
+                            operator=operator,
+                            date=target_date,
+                            shift=shift,
+                            line=line
+                        )
+                    break
+                except IntegrityError:
+                    continue
+            else:
+                return JsonResponse({"error": "Database conflict, retry"}, status=500)
 
-        updated_fields = []
+            updated_fields = []
 
-        for i in range(1, 13):
-            field = f"hour{i}"
-            new_val = request.POST.get(field)
-            old_val = getattr(obj, field)
+            for i in range(1, 13):
+                field = f"hour{i}"
+                new_val = request.POST.get(field)
+                old_val = getattr(obj, field)
 
-            if new_val in [None, ""]:
-                continue
+                if new_val in [None, ""]:
+                    continue
 
-            try:
-                new_val = float(new_val)
-            except:
-                continue
+                try:
+                    new_val = float(new_val)
+                except:
+                    continue
 
-            if old_val not in [None, 0, 0.0]:
-                return JsonResponse(
-                    {"error": f"{field.upper()} already submitted and locked."},
-                    status=403
-                )
+                # ✅ LOCK FIELD (unchanged logic)
+                if old_val not in [None, 0, 0.0]:
+                    return JsonResponse(
+                        {"error": f"{field.upper()} already submitted and locked."},
+                        status=403
+                    )
 
-            if new_val == 0:
-                continue
+                if new_val == 0:
+                    continue
 
-            setattr(obj, field, new_val)
-            updated_fields.append(i)
+                setattr(obj, field, new_val)
+                updated_fields.append(i)
 
-        obj.save()
-        return JsonResponse({"success": True, "updated": updated_fields})
+            obj.save()
+
+            return JsonResponse({"success": True, "updated": updated_fields})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
 
     # ---------------- FORM LOAD ----------------
     for line in lines:
         if selected_line and line != selected_line:
             continue
 
-        obj, created = TempSubmission.objects.get_or_create(
-            operator=operator,
-            date=target_date,
-            shift=shift,
-            line=line
-        )
+        try:
+            # ✅ RETRY SAFE BLOCK
+            for _ in range(3):
+                try:
+                    with transaction.atomic():
+                        obj, created = TempSubmission.objects.get_or_create(
+                            operator=operator,
+                            date=target_date,
+                            shift=shift,
+                            line=line
+                        )
+                    break
+                except IntegrityError:
+                    continue
+            else:
+                obj = TempSubmission.objects.filter(
+                    operator=operator,
+                    date=target_date,
+                    shift=shift,
+                    line=line
+                ).first()
+                created = False
 
-        if created:
-            for i in range(1, 13):
-                setattr(obj, f"hour{i}", 0)
-            obj.save()
+            if created:
+                for i in range(1, 13):
+                    setattr(obj, f"hour{i}", 0)
+                obj.save()
+
+        except Exception:
+            obj = TempSubmission.objects.filter(
+                operator=operator,
+                date=target_date,
+                shift=shift,
+                line=line
+            ).first()
 
         form = TempSubmissionForm(instance=obj)
         forms_data.append((line, form, obj))

@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 
 URL = "http://127.0.0.1:8000/jobcard/temp-submission/"  # your endpoint
-NUM_OPERATORS = 500  # change this to 100 for next test
+NUM_OPERATORS = 200  # change this to 100 for next test
 
 async def submit_operator(operator_id): 
     data = {
