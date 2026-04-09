@@ -95,10 +95,10 @@ def export_jobcards_csv(request):
 # -----------------------------
 # TEMP SUBMISSION (FIXED SHIFT SOURCE ONLY)
 # -----------------------------
-#from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction, IntegrityError
 
-#@csrf_exempt
+@csrf_exempt
 def temp_submission(request):
     active = ActiveShift.objects.first()
 

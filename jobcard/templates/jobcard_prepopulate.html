@@ -118,7 +118,7 @@
 <body>
 
 <div class="card">
-    <h1>Prepopulate JobCards for Today</h1>
+    <h1>Create JobCards For Today</h1>
 
     <!-- Display Django messages -->
     {% if messages %}
@@ -133,7 +133,7 @@
     <form method="post" action="{% url 'jobcard:jobcard_prepopulate' %}">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="submit-btn">Prepopulate JobCard</button>
+        <button type="submit" class="submit-btn">Create JobCard</button>
     </form>
 
     <!-- Export CSV Form (Supervisor Only) -->
