@@ -606,6 +606,14 @@ def set_active_shift(request):
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from .models import UserProfile
+from django.shortcuts import render
+
+
+
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import UserProfile
 
 
 def role_required(role):
@@ -614,17 +622,13 @@ def role_required(role):
         @login_required(login_url="/jobcard/login/")
         def wrapper(request, *args, **kwargs):
 
-            # safety check: user must exist
-            if not request.user.is_authenticated:
-                return HttpResponseForbidden("Not logged in")
-
             try:
                 profile = UserProfile.objects.get(user=request.user)
             except UserProfile.DoesNotExist:
-                return HttpResponseForbidden("Profile not found")
+                return render(request, "errors/403.html", status=403)
 
             if profile.role != role:
-                return HttpResponseForbidden("Not allowed")
+                return render(request, "errors/403.html", status=403)
 
             return view_func(request, *args, **kwargs)
 
