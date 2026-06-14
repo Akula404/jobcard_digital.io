@@ -11,6 +11,8 @@ urlpatterns = [
     path('', home),   # 👈 add this line
     path('admin/', admin.site.urls),
     path('jobcard/', include(('jobcard.urls', 'jobcard'), namespace='jobcard')),
+    # 👇 ADD THIS
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,3 +1,4 @@
+from .decorators import role_required
 from urllib import request
 
 from django.shortcuts import render, redirect
@@ -228,6 +229,7 @@ def temp_submission(request):
 # -----------------------------
 # SUPERVISOR DASHBOARD (FIXED - STRICT ACTIVE SHIFT ONLY)
 # -----------------------------
+@role_required("supervisor")
 def supervisor_dashboard(request):
     active = ActiveShift.objects.first()
 
@@ -385,6 +387,7 @@ def finalize_shift(request, line, shift):
 # -----------------------------
 # JOBCARD OPERATOR ENTRY (STRICT SHIFT MATCH)
 # -----------------------------
+@role_required("operator")
 def jobcard_operator_entry(request):
     active = ActiveShift.objects.first()
 
@@ -469,6 +472,7 @@ def jobcard_success(request):
 # -----------------------------
 # JOBCARD PREPOPULATE (unchanged logic)
 # -----------------------------
+@role_required("supervisor")
 def jobcard_prepopulate(request):
     active = ActiveShift.objects.first()
 
@@ -596,3 +600,43 @@ def set_active_shift(request):
             active.save()
 
     return redirect("jobcard:supervisor_dashboard")
+
+
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import UserProfile
+
+
+def role_required(role):
+    def decorator(view_func):
+
+        @login_required
+        def wrapper(request, *args, **kwargs):
+
+            # safely fetch profile without crashing
+            profile = UserProfile.objects.filter(user=request.user).first()
+
+            if not profile:
+                return HttpResponseForbidden("Profile not found")
+
+            # enforce role restriction
+            if profile.role != role:
+                return HttpResponseForbidden("Not allowed")
+
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+    return decorator
+
+
+@login_required
+def dashboard_home(request):
+    profile = UserProfile.objects.filter(user=request.user).first()
+
+    if not profile:
+        return HttpResponseForbidden("Profile not found")
+
+    return render(request, "dashboard.html", {
+        "role": profile.role
+    })

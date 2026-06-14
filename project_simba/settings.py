@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'jobcard',
+    'dashboard',
 ]
 
 # -----------------------------
@@ -121,6 +122,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # DEFAULT PK
 # -----------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_REDIRECT_URL = '/jobcard/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 
 

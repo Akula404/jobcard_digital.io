@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Realtime Monitoring & Digital Jobcard System</title>
+
+<style>
+
+/* =========================
+   BASE
+========================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:#0b1220;
+    color:#e5e7eb;
+}
+
+/* =========================
+   TOP BAR
+========================= */
+.header{
+    padding:28px 40px;
+    background: linear-gradient(90deg, #0f172a, #111c33, #0f172a);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.header h1{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:0.5px;
+}
+
+.header p{
+    font-size:12px;
+    color:#94a3b8;
+}
+
+/* =========================
+   CONTAINER
+========================= */
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+/* =========================
+   SECTION TITLE
+========================= */
+.section-title{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:#94a3b8;
+    margin:30px 0 15px;
+}
+
+/* =========================
+   GRID
+========================= */
+.card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:18px;
+}
+
+/* =========================
+   CARD (ENTERPRISE STYLE)
+========================= */
+.card{
+    display:block;
+    background: linear-gradient(145deg, #111827, #0b1220);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px;
+    padding:22px;
+    text-decoration:none;
+    color:#e5e7eb;
+    transition:0.25s ease;
+    position:relative;
+    overflow:hidden;
+}
+
+.card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(56,189,248,0.4);
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+}
+
+/* glow line */
+.card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:2px;
+    background:transparent;
+}
+
+.card:hover::before{
+    background: linear-gradient(90deg, #38bdf8, #22c55e);
+}
+
+/* ICON */
+.icon{
+    font-size:26px;
+    margin-bottom:10px;
+}
+
+/* TITLE */
+.card h3{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+/* TEXT */
+.card p{
+    font-size:13px;
+    color:#94a3b8;
+    line-height:1.5;
+}
+
+/* BADGE */
+.badge{
+    display:inline-block;
+    margin-top:14px;
+    padding:5px 10px;
+    font-size:11px;
+    border-radius:999px;
+    background:rgba(56,189,248,0.1);
+    color:#38bdf8;
+    border:1px solid rgba(56,189,248,0.3);
+}
+
+/* =========================
+   ROLE COLORS
+========================= */
+.operator{ border-left:3px solid #3b82f6; }
+.temp{ border-left:3px solid #06b6d4; }
+.supervisor{ border-left:3px solid #22c55e; }
+
+/* =========================
+   FOOTER
+========================= */
+.footer{
+    text-align:center;
+    margin-top:50px;
+    padding:20px;
+    color:#64748b;
+    font-size:12px;
+    border-top:1px solid rgba(255,255,255,0.05);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div>
+        <h1>Realtime Monitoring & Digital Jobcard System</h1>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- OPERATOR SECTION -->
+    <div class="section-title">Operator Workspace</div>
+
+    <div class="card-grid">
+
+        <a href="/jobcard/operator/" class="card operator">
+            <div class="icon">📝</div>
+            <h3>Final Jobcard Submission</h3>
+            <p>Structured production reporting and validated output submission.</p>
+            <span class="badge">Operator Access</span>
+        </a>
+
+        <a href="/jobcard/temp-submission/" class="card temp">
+            <div class="icon">⚡</div>
+            <h3>Line Operator Entry</h3>
+            <p>Real-time production capture per hour per line.</p>
+            <span class="badge">Operator Access</span>
+        </a>
+
+    </div>
+
+    {% if role == "supervisor" %}
+
+    <!-- SUPERVISOR SECTION -->
+    <div class="section-title">Supervisor Control Center</div>
+
+    <div class="card-grid">
+
+        <a href="/jobcard/supervisor-dashboard/" class="card supervisor">
+            <div class="icon">📊</div>
+            <h3>Command Center</h3>
+            <p>Monitor production, validate entries, and manage operations.</p>
+            <span class="badge">Supervisor Access</span>
+        </a>
+
+        <a href="/jobcard/prepopulate/" class="card supervisor">
+            <div class="icon">⚙️</div>
+            <h3>Jobcard Configuration</h3>
+            <p>Create work orders and prepare production lines before shifts.</p>
+            <span class="badge">Supervisor Access</span>
+        </a>
+
+    </div>
+
+    {% endif %}
+
+    <div class="footer">
+        © Realtime Monitoring & Digital Jobcard System • Enterprise Control Suite
+    </div>
+
+</div>
+
+</body>
+</html>
