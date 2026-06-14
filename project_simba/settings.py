@@ -66,7 +66,7 @@ WSGI_APPLICATION = 'project_simba.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],  # add custom dirs if needed
+        'DIRS': [BASE_DIR / "templates"],  # add custom dirs if needed
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -124,9 +124,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-LOGIN_URL = '/accounts/login/'
+LOGIN_URL = '/jobcard/login/'
 LOGIN_REDIRECT_URL = '/jobcard/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/jobcard/login/'
 
 
 

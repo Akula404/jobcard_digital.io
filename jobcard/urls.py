@@ -32,13 +32,13 @@ urlpatterns = [
 
     path(
     "login/",
-    auth_views.LoginView.as_view(template_name="login.html"),
+    auth_views.LoginView.as_view(template_name="registration/login.html"),
     name="login"
     ),
 
     path(
         "logout/",
-        auth_views.LogoutView.as_view(next_page="jobcard:login"),
+        auth_views.LogoutView.as_view(next_page="/jobcard/login/"),
         name="logout"
     ),
 ]

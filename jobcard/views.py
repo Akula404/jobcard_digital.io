@@ -302,6 +302,7 @@ def supervisor_dashboard(request):
 # -----------------------------
 # RESET SHIFT (unchanged)
 # -----------------------------
+@role_required("supervisor")
 def reset_shift(request):
     if request.method == "POST":
         shift = request.POST.get("shift")
@@ -604,23 +605,24 @@ def set_active_shift(request):
 
 from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
 from .models import UserProfile
 
 
 def role_required(role):
     def decorator(view_func):
 
-        @login_required
+        @login_required(login_url="/jobcard/login/")
         def wrapper(request, *args, **kwargs):
 
-            # safely fetch profile without crashing
-            profile = UserProfile.objects.filter(user=request.user).first()
+            # safety check: user must exist
+            if not request.user.is_authenticated:
+                return HttpResponseForbidden("Not logged in")
 
-            if not profile:
+            try:
+                profile = UserProfile.objects.get(user=request.user)
+            except UserProfile.DoesNotExist:
                 return HttpResponseForbidden("Profile not found")
 
-            # enforce role restriction
             if profile.role != role:
                 return HttpResponseForbidden("Not allowed")
 
