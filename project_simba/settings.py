@@ -18,7 +18,7 @@ SECRET_KEY = os.environ.get(
     'sp=!wkx3&j03nyt*+q87_ezcoe#)a9s)*9npk8$a5-yl98229$'  # fallback (dev only)
 )
 
-DEBUG = True  # ALWAYS False on Render
+DEBUG = False  # ALWAYS False on Render
 
 ALLOWED_HOSTS = [
     'jobcardforms.onrender.com',
