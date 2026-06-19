@@ -616,23 +616,27 @@ from .forms import UserCreateForm
 # =====================================
 # ROLE DECORATOR (AUTHORIZATION LAYER)
 # =====================================
+from django.views.decorators.cache import never_cache
+
 def role_required(role):
     def decorator(view_func):
 
+        @never_cache
         @login_required(login_url="/jobcard/login/")
         def wrapper(request, *args, **kwargs):
 
             profile = UserProfile.objects.filter(user=request.user).first()
 
             if not profile:
-                return render(request, "auth_required.html", status=403)
+                return redirect("/jobcard/login/")
 
             if profile.role.strip().lower() != role.strip().lower():
-                return render(request, "auth_required.html", status=403)
+                return redirect("/jobcard/login/")
 
             return view_func(request, *args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
