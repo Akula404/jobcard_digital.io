@@ -603,32 +603,32 @@ def set_active_shift(request):
     return redirect("jobcard:supervisor_dashboard")
 
 
-from django.http import HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+
 from .models import UserProfile
-from django.shortcuts import render
+from .forms import UserCreateForm
 
 
-
-from django.http import HttpResponseForbidden
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from .models import UserProfile
-
-
+# =====================================
+# ROLE DECORATOR (AUTHORIZATION LAYER)
+# =====================================
 def role_required(role):
     def decorator(view_func):
 
         @login_required(login_url="/jobcard/login/")
         def wrapper(request, *args, **kwargs):
 
-            try:
-                profile = UserProfile.objects.get(user=request.user)
-            except UserProfile.DoesNotExist:
-                return render(request, "errors/403.html", status=403)
+            profile = UserProfile.objects.filter(user=request.user).first()
 
-            if profile.role != role:
-                return render(request, "errors/403.html", status=403)
+            if not profile:
+                return render(request, "auth_required.html", status=403)
+
+            if profile.role.strip().lower() != role.strip().lower():
+                return render(request, "auth_required.html", status=403)
 
             return view_func(request, *args, **kwargs)
 
@@ -636,13 +636,161 @@ def role_required(role):
     return decorator
 
 
-@login_required
+# =====================================
+# DASHBOARD (ROLE VIEW SWITCHER)
+# =====================================
+@login_required(login_url="/jobcard/login/")
 def dashboard_home(request):
+
     profile = UserProfile.objects.filter(user=request.user).first()
 
     if not profile:
-        return HttpResponseForbidden("Profile not found")
+        return render(request, "auth_required.html", status=403)
 
     return render(request, "dashboard.html", {
-        "role": profile.role
+        "role": profile.role,
+        "is_developer": profile.role == "developer",
+        "is_supervisor": profile.role == "supervisor",
+        "is_operator": profile.role == "operator",
+    })
+
+
+# =====================================
+# ROLE REDIRECT (AFTER LOGIN)
+# =====================================
+@login_required(login_url="/jobcard/login/")
+def role_redirect(request):
+
+    profile = UserProfile.objects.filter(user=request.user).first()
+
+    if not profile:
+        return redirect("/jobcard/login/")
+
+    # ALWAYS send everyone to the workspace dashboard
+    return redirect("jobcard:dashboard_home")
+
+
+# =====================================
+# DEVELOPER USER MANAGEMENT (READ + CREATE)
+# =====================================
+@role_required("developer")
+def user_management(request):
+
+    if request.method == "POST":
+        form = UserCreateForm(request.POST)
+
+        if form.is_valid():
+
+            user = User.objects.create_user(
+                username=form.cleaned_data["username"],
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password"]
+            )
+
+            UserProfile.objects.create(
+                user=user,
+                role=form.cleaned_data["role"]
+            )
+
+            messages.success(request, "User created successfully!")
+            return redirect("jobcard:user_management")
+
+    else:
+        form = UserCreateForm()
+
+    users = User.objects.select_related("userprofile").all()
+
+    return render(request, "user_management.html", {
+        "form": form,
+        "users": users
+    })
+
+
+# =====================================
+# EDIT USER
+# =====================================
+@role_required("developer")
+def edit_user(request, user_id):
+
+    user = get_object_or_404(User, id=user_id)
+    profile = UserProfile.objects.get(user=user)
+
+    if request.method == "POST":
+
+        user.username = request.POST.get("username")
+        user.email = request.POST.get("email")
+        user.save()
+
+        profile.role = request.POST.get("role")
+        profile.save()
+
+        messages.success(request, "User updated successfully")
+        return redirect("jobcard:user_management")
+
+    return render(request, "edit_user.html", {
+        "user": user,
+        "profile": profile,
+        "roles": UserProfile.ROLE_CHOICES
+    })
+
+
+# =====================================
+# DELETE USER (SAFE GUARD INCLUDED)
+# =====================================
+@role_required("developer")
+def delete_user(request, user_id):
+
+    user = get_object_or_404(User, id=user_id)
+
+    profile = UserProfile.objects.filter(user=user).first()
+
+    if profile and profile.role == "developer":
+        if UserProfile.objects.filter(role="developer").count() == 1:
+            messages.error(request, "Cannot delete last developer")
+            return redirect("jobcard:user_management")
+
+        messages.error(request, "Developer accounts cannot be deleted")
+        return redirect("jobcard:user_management")
+
+    user.delete()
+
+    messages.success(request, "User deleted successfully")
+    return redirect("jobcard:user_management")
+
+
+# =====================================
+# ACTIVATE / DEACTIVATE USER
+# =====================================
+@role_required("developer")
+def toggle_user(request, user_id):
+
+    user = get_object_or_404(User, id=user_id)
+
+    user.is_active = not user.is_active
+    user.save()
+
+    messages.success(request, "User status updated")
+    return redirect("jobcard:user_management")
+
+
+# =====================================
+# RESET PASSWORD
+# =====================================
+@role_required("developer")
+def reset_password(request, user_id):
+
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == "POST":
+
+        new_password = request.POST.get("password")
+
+        user.password = make_password(new_password)
+        user.save()
+
+        messages.success(request, "Password reset successfully")
+        return redirect("jobcard:user_management")
+
+    return render(request, "reset_password.html", {
+        "user": user
     })

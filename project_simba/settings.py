@@ -125,7 +125,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 LOGIN_URL = '/jobcard/login/'
-LOGIN_REDIRECT_URL = '/jobcard/'
+
+LOGIN_REDIRECT_URL = '/jobcard/redirect/'
+
 LOGOUT_REDIRECT_URL = '/jobcard/login/'
 
 

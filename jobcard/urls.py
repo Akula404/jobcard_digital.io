@@ -2,11 +2,14 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 
+from .views import role_redirect
+
 app_name = 'jobcard'
 
 urlpatterns = [
     # DASHBOARD (HOME)
     path('', views.dashboard_home, name='dashboard_home'),
+    path('redirect/', role_redirect, name='role_redirect'),
 
     # OPERATOR PAGES
     path('operator/', views.jobcard_operator_entry, name='operator_entry'),
@@ -29,6 +32,17 @@ urlpatterns = [
     path('reset-shift/', views.reset_shift, name='reset_shift'),
     path('get-active-shift/', views.get_active_shift, name='get_active_shift'),
     path('set-active-shift/', views.set_active_shift, name='set_active_shift'),
+
+    path(
+    "user-management/",
+    views.user_management,
+    name="user_management"
+    ),
+
+    path("user/edit/<int:user_id>/", views.edit_user, name="edit_user"),
+    path("user/delete/<int:user_id>/", views.delete_user, name="delete_user"),
+    path("user/toggle/<int:user_id>/", views.toggle_user, name="toggle_user"),
+    path("user/reset-password/<int:user_id>/", views.reset_password, name="reset_password"),    
 
     path(
     "login/",

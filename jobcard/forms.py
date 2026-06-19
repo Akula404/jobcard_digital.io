@@ -70,3 +70,18 @@ class JobCardPrepopulateForm(forms.ModelForm):
             'operator_names': forms.Textarea(attrs={'rows': 2}),
             'supervisor_names': forms.Textarea(attrs={'rows': 2}),
         }
+
+
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import UserProfile
+
+
+class UserCreateForm(forms.ModelForm):
+    role = forms.ChoiceField(choices=UserProfile.ROLE_CHOICES)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "password"]

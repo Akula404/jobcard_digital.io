@@ -241,6 +241,7 @@ class ActiveShift(models.Model):
 
 class UserProfile(models.Model):
     ROLE_CHOICES = [
+        ('developer', 'Developer'),
         ('operator', 'Operator'),
         ('supervisor', 'Supervisor'),
     ]

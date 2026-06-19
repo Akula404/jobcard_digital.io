@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Realtime Monitoring & Digital Jobcard System</title>
 
 <style>
@@ -15,153 +14,222 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family:"Segoe UI", Arial, sans-serif;
 }
 
 body{
     min-height:100vh;
-    background:#0b1220;
-    color:#e5e7eb;
+    background:#f5f7fb;
+    color:#111827;
 }
 
 /* =========================
-   TOP BAR
+   HEADER
 ========================= */
 .header{
-    padding:28px 40px;
-    background: linear-gradient(90deg, #0f172a, #111c33, #0f172a);
-    border-bottom:1px solid rgba(255,255,255,0.08);
     display:flex;
     justify-content:space-between;
     align-items:center;
+    padding:20px 40px;
+    background:#ffffff;
+    border-bottom:1px solid #e5e7eb;
 }
 
 .header h1{
-    font-size:20px;
+    font-size:18px;
     font-weight:700;
-    letter-spacing:0.5px;
+    color:#111827;
 }
 
 .header p{
     font-size:12px;
-    color:#94a3b8;
+    color:#6b7280;
+}
+
+.user-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.avatar{
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    background:linear-gradient(135deg,#2563eb,#22c55e);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:white;
 }
 
 /* =========================
-   CONTAINER
+   LOGOUT BUTTON (PRO)
 ========================= */
-.container{
-    max-width:1200px;
-    margin:auto;
-    padding:40px 20px;
+.logout-btn{
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:600;
+    color:#fff;
+    background:#ef4444;
+    transition:0.2s ease;
+}
+
+.logout-btn:hover{
+    background:#dc2626;
+    transform:translateY(-1px);
+}
+
+.logout-btn:active{
+    transform:scale(0.97);
+}
+
+/* =========================
+   HERO
+========================= */
+.hero{
+    margin:25px 40px;
+    padding:25px;
+    border-radius:12px;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+}
+
+.hero h2{
+    font-size:20px;
+    margin-bottom:6px;
+}
+
+.hero p{
+    font-size:13px;
+    color:#6b7280;
+}
+
+/* =========================
+   STATS
+========================= */
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin:20px 40px;
+}
+
+.stat{
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:16px;
+}
+
+.stat h3{
+    font-size:18px;
+    color:#2563eb;
+}
+
+.stat p{
+    font-size:12px;
+    color:#6b7280;
 }
 
 /* =========================
    SECTION TITLE
 ========================= */
 .section-title{
-    font-size:13px;
+    margin:25px 40px 10px;
+    font-size:12px;
+    letter-spacing:1px;
     text-transform:uppercase;
-    letter-spacing:2px;
-    color:#94a3b8;
-    margin:30px 0 15px;
+    color:#6b7280;
 }
 
 /* =========================
-   GRID
+   CARD GRID
 ========================= */
 .card-grid{
+    margin:0 40px;
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:18px;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:16px;
 }
 
 /* =========================
-   CARD (ENTERPRISE STYLE)
+   CARD
 ========================= */
 .card{
     display:block;
-    background: linear-gradient(145deg, #111827, #0b1220);
-    border:1px solid rgba(255,255,255,0.08);
-    border-radius:14px;
-    padding:22px;
+    padding:20px;
+    border-radius:12px;
     text-decoration:none;
-    color:#e5e7eb;
-    transition:0.25s ease;
-    position:relative;
-    overflow:hidden;
+    color:#111827;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    transition:0.2s ease;
 }
 
 .card:hover{
-    transform:translateY(-6px);
-    border-color:rgba(56,189,248,0.4);
-    box-shadow:0 20px 40px rgba(0,0,0,0.5);
-}
-
-/* glow line */
-.card::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:2px;
-    background:transparent;
-}
-
-.card:hover::before{
-    background: linear-gradient(90deg, #38bdf8, #22c55e);
+    transform:translateY(-4px);
+    border-color:#c7d2fe;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
 /* ICON */
 .icon{
-    font-size:26px;
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    background:#eff6ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     margin-bottom:10px;
 }
 
-/* TITLE */
-.card h3{
-    font-size:16px;
-    font-weight:700;
-    margin-bottom:8px;
+/* SVG */
+.icon svg{
+    width:20px;
+    height:20px;
+    fill:#2563eb;
 }
 
 /* TEXT */
+.card h3{
+    font-size:15px;
+    margin-bottom:6px;
+}
+
 .card p{
-    font-size:13px;
-    color:#94a3b8;
-    line-height:1.5;
+    font-size:12px;
+    color:#6b7280;
 }
 
 /* BADGE */
 .badge{
+    margin-top:10px;
     display:inline-block;
-    margin-top:14px;
-    padding:5px 10px;
     font-size:11px;
+    padding:4px 8px;
     border-radius:999px;
-    background:rgba(56,189,248,0.1);
-    color:#38bdf8;
-    border:1px solid rgba(56,189,248,0.3);
+    background:#eff6ff;
+    color:#2563eb;
+    border:1px solid #dbeafe;
 }
 
-/* =========================
-   ROLE COLORS
-========================= */
-.operator{ border-left:3px solid #3b82f6; }
+/* ROLE BORDERS */
+.operator{ border-left:3px solid #2563eb; }
 .temp{ border-left:3px solid #06b6d4; }
 .supervisor{ border-left:3px solid #22c55e; }
 
-/* =========================
-   FOOTER
-========================= */
+/* FOOTER */
 .footer{
     text-align:center;
-    margin-top:50px;
-    padding:20px;
-    color:#64748b;
+    margin:40px;
     font-size:12px;
-    border-top:1px solid rgba(255,255,255,0.05);
+    color:#9ca3af;
 }
 
 </style>
@@ -174,60 +242,129 @@ body{
     <div>
         <h1>Realtime Monitoring & Digital Jobcard System</h1>
     </div>
+
+    <div class="user-box">
+        <div class="avatar">
+            {{ request.user.username|first|upper }}
+        </div>
+
+        <div>
+            <div style="font-size:12px;font-weight:600;">
+                {{ request.user.username }}
+            </div>
+            <div style="font-size:11px;color:#6b7280;">
+                {{ role|title }}
+            </div>
+        </div>
+
+        <form method="POST" action="/jobcard/logout/">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">
+                Logout
+            </button>
+        </form>
+    </div>
 </div>
 
-<div class="container">
+<!-- HERO -->
+<div class="hero">
+    <h2>Welcome back, {{ request.user.username }}</h2>
+    {% if role == "operator" %}
+<p>
+     View shift plans, Record hourly output, and Submit Jobcards.
+</p>
 
-    <!-- OPERATOR SECTION -->
-    <div class="section-title">Operator Workspace</div>
+{% elif role == "supervisor" %}
+<p>
+    Access your command center to Plan shifts, Create Jobcards, Monitor Hourly Output and Oversee Operational performance.
+</p>
 
-    <div class="card-grid">
+{% elif role == "developer" %}
+<p>
+    Access the system administration workspace to Manage users, Roles, and Platform configuration.
+</p>
 
-        <a href="/jobcard/operator/" class="card operator">
-            <div class="icon">📝</div>
-            <h3>Final Jobcard Submission</h3>
-            <p>Structured production reporting and validated output submission.</p>
-            <span class="badge">Operator Access</span>
-        </a>
+{% else %}
+<p>
+    Access your workspace to manage jobcards and monitor production workflows.
+</p>
+{% endif %}
+</div>
 
-        <a href="/jobcard/temp-submission/" class="card temp">
-            <div class="icon">⚡</div>
-            <h3>Line Operator Entry</h3>
-            <p>Real-time production capture per hour per line.</p>
-            <span class="badge">Operator Access</span>
-        </a>
-
+<!-- STATS -->
+<div class="stats">
+    <div class="stat">
+        <h3>Active</h3>
+        <p>System Status</p>
     </div>
 
-    {% if role == "supervisor" %}
-
-    <!-- SUPERVISOR SECTION -->
-    <div class="section-title">Supervisor Control Center</div>
-
-    <div class="card-grid">
-
-        <a href="/jobcard/supervisor-dashboard/" class="card supervisor">
-            <div class="icon">📊</div>
-            <h3>Command Center</h3>
-            <p>Monitor production, validate entries, and manage operations.</p>
-            <span class="badge">Supervisor Access</span>
-        </a>
-
-        <a href="/jobcard/prepopulate/" class="card supervisor">
-            <div class="icon">⚙️</div>
-            <h3>Jobcard Configuration</h3>
-            <p>Create work orders and prepare production lines before shifts.</p>
-            <span class="badge">Supervisor Access</span>
-        </a>
-
+    <div class="stat">
+        <h3>{{ role|title }}</h3>
+        <p>Current Role</p>
     </div>
 
-    {% endif %}
-
-    <div class="footer">
-        © Realtime Monitoring & Digital Jobcard System • Enterprise Control Suite
+    <div class="stat">
+        <h3>24/7</h3>
+        <p>Monitoring</p>
     </div>
+</div>
 
+<!-- OPERATOR -->
+{% if role == "operator" or role == "developer" %}
+<div class="section-title">Operator Workspace</div>
+
+<div class="card-grid">
+
+    <a href="/jobcard/operator/" class="card operator">
+        <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>
+        </div>
+        <h3>Final Jobcard Submission</h3>
+        <p>Submit Jobcards for end-of-shift validation.</p>
+        <span class="badge">Operator</span>
+    </a>
+
+    <a href="/jobcard/temp-submission/" class="card temp">
+        <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+        </div>
+        <h3>Live Hourly Entry</h3>
+        <p>Real-time hourly production logging.</p>
+        <span class="badge">Operator</span>
+    </a>
+
+</div>
+{% endif %}
+
+<!-- SUPERVISOR -->
+{% if role == "supervisor" or role == "developer" %}
+<div class="section-title">Supervisor Control Center</div>
+
+<div class="card-grid">
+
+    <a href="/jobcard/supervisor-dashboard/" class="card supervisor">
+        <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>
+        </div>
+        <h3>Command Center</h3>
+        <p>Monitor operations and Reset shifts.</p>
+        <span class="badge">Supervisor</span>
+    </a>
+
+    <a href="/jobcard/prepopulate/" class="card supervisor">
+        <div class="icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+        </div>
+        <h3>Create Jobcards</h3>
+        <p>Create Jobcards for upcoming shifts.</p>
+        <span class="badge">Supervisor</span>
+    </a>
+
+</div>
+{% endif %}
+
+<div class="footer">
+    © Digital Jobcard System • All Rights Reserved
 </div>
 
 </body>
