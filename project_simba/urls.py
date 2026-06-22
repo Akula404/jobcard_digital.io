@@ -7,6 +7,11 @@ from django.shortcuts import redirect
 def home(request):
     return redirect('/jobcard/')
 
+handler400 = "jobcard.views.custom_400"
+handler403 = "jobcard.views.custom_403"
+handler404 = "jobcard.views.custom_404"
+handler500 = "jobcard.views.custom_500"
+
 urlpatterns = [
     path('', home),   # 👈 add this line
     path('admin/', admin.site.urls),

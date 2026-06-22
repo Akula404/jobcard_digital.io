@@ -19,6 +19,8 @@ SECRET_KEY = os.environ.get(
 )
 
 DEBUG = False  # ALWAYS False on Render
+CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
+
 
 ALLOWED_HOSTS = [
     'jobcardforms.onrender.com',
