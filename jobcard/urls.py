@@ -55,4 +55,23 @@ urlpatterns = [
         auth_views.LogoutView.as_view(next_page="/jobcard/login/"),
         name="logout"
     ),
+
+
+        path(
+        "submit-alert/",
+        views.submit_alert,
+        name="submit_alert"
+    ),
+
+        path(
+        "alerts/",
+        views.get_unresolved_alerts,
+        name="alerts"
+    ),
+
+    path(
+        "alerts/<int:alert_id>/ack/",
+        views.acknowledge_alert,
+        name="ack_alert"
+    ),
 ]

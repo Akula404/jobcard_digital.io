@@ -114,6 +114,137 @@ input.locked {
     font-weight: 800;
 }
 
+/* ===================================== */
+/* OPERATOR ALERT SYSTEM */
+/* ===================================== */
+
+#alertBtn{
+    position:fixed;
+    bottom:30px;
+    right:30px;
+    width:70px;
+    height:70px;
+    border:none;
+    border-radius:50%;
+    cursor:pointer;
+
+    background:linear-gradient(
+        135deg,
+        #2563eb,
+        #1d4ed8
+    );
+
+    color:white;
+    font-size:30px;
+
+    box-shadow:
+        0 15px 40px rgba(37,99,235,.35);
+
+    z-index:9998;
+    transition:.25s;
+}
+
+#alertBtn:hover{
+    transform:scale(1.08);
+}
+
+#alertModal{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.55);
+
+    display:none;
+
+    justify-content:center;
+    align-items:center;
+
+    z-index:99999;
+}
+
+.alert-box{
+
+    width:550px;
+    max-width:92%;
+
+    background:white;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.25);
+}
+
+.alert-header{
+
+    background:linear-gradient(
+        135deg,
+        #2563eb,
+        #1d4ed8
+    );
+
+    color:white;
+
+    padding:20px;
+
+    font-size:18px;
+    font-weight:700;
+}
+
+.alert-body{
+    padding:20px;
+}
+
+.alert-body label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:600;
+    color:#0f172a;
+}
+
+.alert-body select,
+.alert-body textarea{
+
+    width:100%;
+
+    border:1px solid #cbd5e1;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    margin-bottom:16px;
+
+    font-size:14px;
+}
+
+.alert-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+
+.alert-cancel{
+    border:none;
+    padding:12px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    background:#e2e8f0;
+}
+
+.alert-send{
+    border:none;
+    padding:12px 18px;
+    border-radius:10px;
+    cursor:pointer;
+
+    color:white;
+
+    background:#2563eb;
+}
+
 /* RESPONSIVE ADJUSTMENTS */
 @media(max-width: 600px){
     .grid, .hour-labels {
@@ -167,6 +298,98 @@ input.locked {
     </form>
 </div>
 {% endfor %}
+
+<!-- ===================================== -->
+<!-- REPORT ISSUE BUTTON -->
+<!-- ===================================== -->
+
+<button id="alertBtn">
+💬
+</button>
+
+<div id="alertModal">
+
+    <div class="alert-box">
+
+        <div class="alert-header">
+            Report Production Issue
+        </div>
+
+        <div class="alert-body">
+
+            <form id="alertForm">
+
+                {% csrf_token %}
+
+                <label>Line</label>
+
+                <select name="line">
+
+                    {% for line, form, obj in forms_data %}
+                    <option value="{{ line }}">
+                        {{ line }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+
+                <input
+                    type="hidden"
+                    name="shift"
+                    value="{{ shift }}"
+                >
+
+                <label>Severity</label>
+
+                <select name="severity">
+                    <option value="info">
+                        Information
+                    </option>
+
+                    <option value="warning">
+                        Warning
+                    </option>
+
+                    <option value="critical">
+                        Critical
+                    </option>
+                </select>
+
+                <label>Issue Description</label>
+
+                <textarea
+                    name="message"
+                    rows="5"
+                    placeholder="Describe the issue..."
+                    required
+                ></textarea>
+
+                <div class="alert-actions">
+
+                    <button
+                        type="button"
+                        class="alert-cancel"
+                        onclick="closeAlertModal()"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="alert-send"
+                    >
+                        Send Alert
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 
 <script>
 document.querySelectorAll(".line-form").forEach(form => {
@@ -388,3 +611,79 @@ function showNotification(data) {
     }
 }
 </style>
+
+<script>
+
+const alertBtn =
+document.getElementById("alertBtn");
+
+const alertModal =
+document.getElementById("alertModal");
+
+alertBtn.onclick = () => {
+    alertModal.style.display = "flex";
+};
+
+function closeAlertModal(){
+    alertModal.style.display = "none";
+}
+
+document
+.getElementById("alertForm")
+.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const formData =
+    new FormData(this);
+
+    try{
+
+        const response =
+        await fetch(
+            "/jobcard/submit-alert/",
+            {
+                method:"POST",
+                headers:{
+                    "X-CSRFToken":
+                    document.querySelector(
+                        "[name=csrfmiddlewaretoken]"
+                    ).value
+                },
+                body:formData
+            }
+        );
+
+        const data =
+        await response.json();
+
+        if(data.success){
+
+            alert(
+                "Issue reported successfully."
+            );
+
+            this.reset();
+
+            closeAlertModal();
+        }
+        else{
+
+            alert(
+                data.error ||
+                "Failed to submit."
+            );
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        alert(
+            "Unable to submit issue."
+        );
+    }
+
+});
+
+</script>

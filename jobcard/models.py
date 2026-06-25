@@ -251,3 +251,78 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.role}"
+    
+
+# =====================================================
+# LINE INCIDENT / OPERATOR ALERT SYSTEM
+# =====================================================
+class LineAlert(models.Model):
+
+    SEVERITY_CHOICES = [
+        ("info", "Information"),
+        ("warning", "Warning"),
+        ("critical", "Critical"),
+    ]
+
+    STATUS_CHOICES = [
+        ("new", "New"),
+        ("acknowledged", "Acknowledged"),
+        ("resolved", "Resolved"),
+    ]
+
+    operator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="line_alerts"
+    )
+
+    line = models.CharField(
+        max_length=10,
+        choices=LINE_CHOICES
+    )
+
+    shift = models.CharField(
+        max_length=20,
+        choices=SHIFT_CHOICES
+    )
+
+    severity = models.CharField(
+        max_length=20,
+        choices=SEVERITY_CHOICES,
+        default="warning"
+    )
+
+    message = models.TextField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="new"
+    )
+
+    acknowledged_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="acknowledged_alerts"
+    )
+
+    acknowledged_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return (
+            f"{self.line} | "
+            f"{self.severity.upper()} | "
+            f"{self.operator.username}"
+        )

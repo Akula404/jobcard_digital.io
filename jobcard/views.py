@@ -811,3 +811,107 @@ def reset_password(request, user_id):
     return render(request, "reset_password.html", {
         "user": user
     })
+
+
+
+
+
+from .models import LineAlert
+
+@login_required(login_url="/jobcard/login/")
+def submit_alert(request):
+
+    try:
+
+        if request.method != "POST":
+            return JsonResponse(
+                {"error": "Invalid request"},
+                status=400
+            )
+
+        line = request.POST.get("line")
+        shift = request.POST.get("shift")
+        severity = request.POST.get("severity")
+        message = request.POST.get("message")
+
+        if not message:
+            return JsonResponse({
+                "error": "Please enter a message."
+            })
+
+        alert = LineAlert.objects.create(
+            operator=request.user,
+            line=line,
+            shift=shift,
+            severity=severity,
+            message=message
+        )
+
+        return JsonResponse({
+            "success": True,
+            "alert_id": alert.id
+        })
+
+    except Exception as e:
+
+        return JsonResponse({
+            "error": str(e)
+        }, status=500)
+
+
+
+# =====================================
+# GET ACTIVE ALERTS
+# =====================================
+@login_required(login_url="/jobcard/login/")
+def get_unresolved_alerts(request):
+
+    alerts = LineAlert.objects.filter(
+        status="new"
+    ).order_by("-created_at")
+
+    return JsonResponse([
+        {
+            "id": alert.id,
+            "line": alert.line,
+            "shift": alert.shift,
+            "severity": alert.severity,
+            "message": alert.message,
+            "operator": alert.operator.username if alert.operator else "Unknown",
+            "time": alert.created_at.strftime("%H:%M")
+        }
+        for alert in alerts
+    ], safe=False)
+
+
+# =====================================
+# ACKNOWLEDGE ALERT
+# =====================================
+@login_required(login_url="/jobcard/login/")
+def acknowledge_alert(request, alert_id):
+
+    if request.method != "POST":
+        return JsonResponse({
+            "success": False,
+            "error": "POST request required"
+        }, status=400)
+
+    try:
+        alert = LineAlert.objects.get(id=alert_id)
+
+        alert.status = "acknowledged"
+        alert.acknowledged_by = request.user
+        alert.acknowledged_at = timezone.now()
+
+        alert.save()
+
+        return JsonResponse({
+            "success": True
+        })
+
+    except LineAlert.DoesNotExist:
+
+        return JsonResponse({
+            "success": False,
+            "error": "Alert not found"
+        }, status=404)
