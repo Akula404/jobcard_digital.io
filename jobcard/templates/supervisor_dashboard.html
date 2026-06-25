@@ -459,6 +459,18 @@ setInterval(fetchDashboard, 2000);
 
 const shownAlerts = new Set();
 
+function getCSRFToken() {
+
+    const tokenInput =
+        document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+        );
+
+    return tokenInput
+        ? tokenInput.value
+        : "";
+}
+
 async function loadAlerts(){
 
     try{
@@ -486,7 +498,11 @@ async function loadAlerts(){
         });
 
     }catch(err){
-        console.log(err);
+
+        console.error(
+            "Alert loading error:",
+            err
+        );
     }
 }
 
@@ -503,36 +519,39 @@ function showAlert(alert){
     div.className =
     "alert-popup";
 
+    div.dataset.alertId =
+    alert.id;
+
     div.innerHTML = `
 
         <h4>
-        ⚠ Production Alert
+            ⚠ Production Alert
         </h4>
 
         <p>
-        <strong>Line:</strong>
-        ${alert.line}
+            <strong>Line:</strong>
+            ${alert.line}
         </p>
 
         <p>
-        <strong>Operator:</strong>
-        ${alert.operator}
+            <strong>Operator:</strong>
+            ${alert.operator}
         </p>
 
         <p>
-        <strong>Severity:</strong>
-        ${alert.severity}
+            <strong>Severity:</strong>
+            ${alert.severity}
         </p>
 
         <p>
-        ${alert.message}
+            ${alert.message}
         </p>
 
         <button
-        onclick="acknowledgeAlert(
-        ${alert.id},
-        this.parentElement
-        )">
+            onclick="acknowledgeAlert(
+                ${alert.id},
+                this.parentElement
+            )">
             Acknowledge
         </button>
 
@@ -546,11 +565,56 @@ async function acknowledgeAlert(
     element
 ){
 
-    await fetch(
-        `/jobcard/alerts/${id}/ack/`
-    );
+    try{
 
-    element.remove();
+        const response =
+        await fetch(
+            `/jobcard/alerts/${id}/ack/`,
+            {
+                method:"POST",
+
+                headers:{
+                    "X-CSRFToken":
+                        getCSRFToken(),
+
+                    "X-Requested-With":
+                        "XMLHttpRequest"
+                }
+            }
+        );
+
+        const data =
+        await response.json();
+
+        if(data.success){
+
+            shownAlerts.delete(id);
+
+            element.remove();
+
+            console.log(
+                `Alert ${id} acknowledged`
+            );
+
+        }else{
+
+            alert(
+                data.error ||
+                "Failed to acknowledge alert."
+            );
+        }
+
+    }catch(err){
+
+        console.error(
+            "Acknowledge error:",
+            err
+        );
+
+        alert(
+            "Unable to acknowledge alert."
+        );
+    }
 }
 
 setInterval(
