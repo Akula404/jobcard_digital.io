@@ -734,14 +734,28 @@ def edit_user(request, user_id):
 
     if request.method == "POST":
 
+        new_role = request.POST.get("role")
+
+        # Prevent changing the LAST developer into another role
+        if (
+            profile.role == "developer"
+            and new_role != "developer"
+            and UserProfile.objects.filter(role="developer").count() == 1
+        ):
+            messages.error(
+                request,
+                "The final Developer account cannot have its role changed."
+            )
+            return redirect("jobcard:user_management")
+
         user.username = request.POST.get("username")
         user.email = request.POST.get("email")
         user.save()
 
-        profile.role = request.POST.get("role")
+        profile.role = new_role
         profile.save()
 
-        messages.success(request, "User updated successfully")
+        messages.success(request, "User updated successfully.")
         return redirect("jobcard:user_management")
 
     return render(request, "edit_user.html", {
@@ -752,7 +766,7 @@ def edit_user(request, user_id):
 
 
 # =====================================
-# DELETE USER (SAFE GUARD INCLUDED)
+# DELETE USER (ENSURE FINAL DEVELOPER PROTECTION)
 # =====================================
 @role_required("developer")
 def delete_user(request, user_id):
@@ -762,16 +776,19 @@ def delete_user(request, user_id):
     profile = UserProfile.objects.filter(user=user).first()
 
     if profile and profile.role == "developer":
-        if UserProfile.objects.filter(role="developer").count() == 1:
-            messages.error(request, "Cannot delete last developer")
-            return redirect("jobcard:user_management")
 
-        messages.error(request, "Developer accounts cannot be deleted")
-        return redirect("jobcard:user_management")
+        developers = UserProfile.objects.filter(role="developer").count()
+
+        if developers == 1:
+            messages.error(
+                request,
+                "The final Developer account cannot be deleted."
+            )
+            return redirect("jobcard:user_management")
 
     user.delete()
 
-    messages.success(request, "User deleted successfully")
+    messages.success(request, "User deleted successfully.")
     return redirect("jobcard:user_management")
 
 
@@ -783,10 +800,33 @@ def toggle_user(request, user_id):
 
     user = get_object_or_404(User, id=user_id)
 
+    profile = UserProfile.objects.filter(user=user).first()
+
+    # Prevent deactivating the last active developer
+    if (
+        profile
+        and profile.role == "developer"
+        and user.is_active
+    ):
+
+        active_developers = UserProfile.objects.filter(
+            role="developer",
+            user__is_active=True
+        ).count()
+
+        if active_developers == 1:
+            messages.error(
+                request,
+                "The final active Developer account cannot be deactivated."
+            )
+            return redirect("jobcard:user_management")
+
     user.is_active = not user.is_active
     user.save()
 
-    messages.success(request, "User status updated")
+    status = "activated" if user.is_active else "deactivated"
+
+    messages.success(request, f"User {status} successfully.")
     return redirect("jobcard:user_management")
 
 

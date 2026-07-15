@@ -32,6 +32,34 @@ body{
     box-shadow:0 2px 10px rgba(0,0,0,.04);
 }
 
+.back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    padding:10px 18px;
+
+    border-radius:10px;
+
+    text-decoration:none;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    transition:.2s;
+}
+
+.back-btn:hover{
+    background:#1d4ed8;
+    transform:translateY(-2px);
+    box-shadow:0 10px 20px rgba(37,99,235,.25);
+}
+
 .header h1{
     font-size:22px;
     font-weight:700;
@@ -213,10 +241,16 @@ tr:hover{
 <body>
 
 <div class="header">
+
     <div>
         <h1>Developer Control Center</h1>
         <p>User Administration & Access Management</p>
     </div>
+
+    <a href="/jobcard/" class="back-btn">
+        ← Back to Portal
+    </a>
+
 </div>
 
 <div class="container">

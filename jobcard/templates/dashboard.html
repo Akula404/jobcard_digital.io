@@ -363,6 +363,34 @@ body{
 </div>
 {% endif %}
 
+
+
+{% if role == "developer" %}
+<div class="section-title">System Administration</div>
+
+<div class="card-grid">
+
+    <a href="/jobcard/user-management/" class="card supervisor">
+        <div class="icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-7 9v-1c0-2.76 4.03-5 7-5s7 2.24 7 5v1H5z"/>
+            </svg>
+        </div>
+
+        <h3>User Management</h3>
+
+        <p>
+            Create users, edit accounts, assign roles,
+            activate/deactivate users, reset passwords
+            and manage system access.
+        </p>
+
+        <span class="badge">Developer</span>
+
+    </a>
+
+</div>
+{% endif %}
 <div class="footer">
     © Digital Jobcard System • All Rights Reserved
 </div>

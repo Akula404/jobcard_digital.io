@@ -3,9 +3,78 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Filling & Packing Job Card</title>
+
+
 
 <style>
+.back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    padding:10px 18px;
+
+    border-radius:10px;
+
+    text-decoration:none;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    transition:.2s;
+}
+
+.back-btn:hover{
+    background:#1d4ed8;
+    transform:translateY(-2px);
+    box-shadow:0 10px 20px rgba(37,99,235,.25);
+}
+/* ---------- HEADER ---------- */
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    max-width:1000px;
+    margin:25px auto 0;
+}
+
+.header-actions{
+    display:flex;
+    gap:12px;
+}
+
+.hourly-entry-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    padding:10px 18px;
+
+    border-radius:10px;
+
+    text-decoration:none;
+
+    background:#16a34a;
+
+    color:#fff;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    transition:.25s;
+}
+
+.hourly-entry-btn:hover{
+    background:#15803d;
+    transform:translateY(-2px);
+    box-shadow:0 10px 20px rgba(22,163,74,.28);
+}
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f2f5f8; margin:0; padding:0; }
 h1 { text-align:center; margin-top:30px; color:#34495e; }
 form { background:#fff; max-width:1000px; margin:30px auto; padding:30px 40px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.1); }
@@ -29,7 +98,23 @@ textarea { min-height:60px; }
 </head>
 <body>
 
-<h1>Filling & Packing Job Card</h1>
+<div class="page-header">
+
+    <a href="/jobcard/" class="back-btn">
+        ← Back to Portal
+    </a>
+
+    <h1 style="margin:0;">
+        Filling & Packing Job Card
+    </h1>
+
+    <div class="header-actions">
+        <a href="/jobcard/temp-submission/" class="hourly-entry-btn">
+            ⏱ Enter Hourly Output
+        </a>
+    </div>
+
+</div>
 
 <form method="post">
 {% csrf_token %}
