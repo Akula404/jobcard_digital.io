@@ -1,3 +1,7 @@
+import profile
+
+import jobcard
+
 from .decorators import role_required
 from urllib import request
 
@@ -9,7 +13,10 @@ from django.contrib import messages
 from .forms import TempSubmissionForm, JobCardForm, JobCardPrepopulateForm
 from .models import TempSubmission, ShiftSubmission, JobCard, LINE_CHOICES, ActiveShift
 from datetime import timedelta, time
-import csv
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.drawing.image import Image
+from openpyxl.utils import get_column_letter
 from django.utils.timezone import now
 from .models import ActiveShift
 
@@ -44,7 +51,7 @@ def get_production_date(shift: str, current_time=None):
     return today
 
 # -----------------------------
-# CSV EXPORT (unchanged)
+# EXCEL EXPORT (OpenPyXL)
 # -----------------------------
 def export_jobcards_csv(request):
     start_date = request.GET.get('start_date', timezone.localdate())
@@ -53,15 +60,17 @@ def export_jobcards_csv(request):
     shift = request.GET.get('shift')
 
     jobcards = JobCard.objects.filter(date__range=[start_date, end_date])
+
     if line:
         jobcards = jobcards.filter(line=line)
+
     if shift:
         jobcards = jobcards.filter(shift=shift)
 
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = f'attachment; filename="jobcards_{start_date}_to_{end_date}.csv"'
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "JobCards"
 
-    writer = csv.writer(response)
     header = [
         'Date','Line','Shift','WO Number','Product Code','Product Name','Target Quantity',
         'Hour1','Hour2','Hour3','Hour4','Hour5','Hour6','Hour7','Hour8','Hour9','Hour10','Hour11','Hour12',
@@ -72,24 +81,126 @@ def export_jobcards_csv(request):
         'Jar Reject','Cap Reject','Front Label Reject','Back Label Reject','Carton Reject',
         'Sleeve Reject','Sticker Reject','Tube Reject','Packets Reject','Roll On Ball Reject','Jar Pump Reject',
         'Total Reject',
-        'Operators','Supervisors'
+        'Operators','Supervisors',
+        'Supervisor Signature',
+        'Line Captain Signature'
     ]
-    writer.writerow(header)
+
+    sheet.append(header)
+
+    # Header styling
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill(fill_type="solid", fgColor="D9EAD3")
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    current_row = 2
 
     for jc in jobcards:
+
         row = [
-            jc.date, jc.line, jc.shift, jc.wo_number, jc.product_code, jc.product_name, jc.target_quantity,
-            jc.hour1, jc.hour2, jc.hour3, jc.hour4, jc.hour5, jc.hour6, jc.hour7, jc.hour8, jc.hour9, jc.hour10, jc.hour11, jc.hour12,
+            jc.date,
+            jc.line,
+            jc.shift,
+            jc.wo_number,
+            jc.product_code,
+            jc.product_name,
+            jc.target_quantity,
+
+            jc.hour1,
+            jc.hour2,
+            jc.hour3,
+            jc.hour4,
+            jc.hour5,
+            jc.hour6,
+            jc.hour7,
+            jc.hour8,
+            jc.hour9,
+            jc.hour10,
+            jc.hour11,
+            jc.hour12,
+
             jc.total_output(),
-            jc.jar_damage, jc.cap_damage, jc.front_label_damage, jc.back_label_damage, jc.carton_damage,
-            jc.sleeve_damage, jc.sticker_damage, jc.tube_damage, jc.packets_damage, jc.roll_on_ball_damage, jc.jar_pump_damage,
+
+            jc.jar_damage,
+            jc.cap_damage,
+            jc.front_label_damage,
+            jc.back_label_damage,
+            jc.carton_damage,
+            jc.sleeve_damage,
+            jc.sticker_damage,
+            jc.tube_damage,
+            jc.packets_damage,
+            jc.roll_on_ball_damage,
+            jc.jar_pump_damage,
+
             jc.total_damage(),
-            jc.jar_reject, jc.cap_reject, jc.front_label_reject, jc.back_label_reject, jc.carton_reject,
-            jc.sleeve_reject, jc.sticker_reject, jc.tube_reject, jc.packets_reject, jc.roll_on_ball_reject, jc.jar_pump_reject,
+
+            jc.jar_reject,
+            jc.cap_reject,
+            jc.front_label_reject,
+            jc.back_label_reject,
+            jc.carton_reject,
+            jc.sleeve_reject,
+            jc.sticker_reject,
+            jc.tube_reject,
+            jc.packets_reject,
+            jc.roll_on_ball_reject,
+            jc.jar_pump_reject,
+
             jc.total_reject(),
-            jc.operator_names, jc.supervisor_names
+
+            jc.operator_names,
+            jc.supervisor_names,
+
+            "",   # Supervisor Signature placeholder
+            ""    # Line Captain Signature placeholder
         ]
-        writer.writerow(row)
+
+        sheet.append(row)
+
+        # -------------------------
+        # Supervisor Signature
+        # -------------------------
+        if jc.supervisor_signature:
+            try:
+                img = Image(jc.supervisor_signature.path)
+                img.width = 90
+                img.height = 45
+                sheet.add_image(img, f"AW{current_row}")
+                sheet.row_dimensions[current_row].height = 40
+            except Exception:
+                sheet[f"AW{current_row}"] = "Image Missing"
+
+        # -------------------------
+        # Line Captain Signature
+        # -------------------------
+        if jc.line_captain_signature:
+            try:
+                img = Image(jc.line_captain_signature.path)
+                img.width = 90
+                img.height = 45
+                sheet.add_image(img, f"AX{current_row}")
+                sheet.row_dimensions[current_row].height = 40
+            except Exception:
+                sheet[f"AX{current_row}"] = "Image Missing"
+
+        current_row += 1
+
+    # Auto-size columns
+    for column_cells in sheet.columns:
+        length = max(len(str(cell.value or "")) for cell in column_cells)
+        sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = min(length + 3, 40)
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response["Content-Disposition"] = (
+        f'attachment; filename="jobcards_{start_date}_to_{end_date}.xlsx"'
+    )
+
+    workbook.save(response)
 
     return response
 
@@ -433,6 +544,8 @@ def jobcard_operator_entry(request):
 
         if form.is_valid():
             jobcard = form.save(commit=False)
+            profile = request.user.userprofile
+            jobcard.line_captain_signature = profile.signature
             jobcard.date = jobcard_date
             jobcard.line = line
             jobcard.shift = shift
@@ -492,6 +605,7 @@ def jobcard_prepopulate(request):
         form = JobCardPrepopulateForm(request.POST)
         if form.is_valid():
             line = form.cleaned_data['line']
+            profile = request.user.userprofile
             wo_number = form.cleaned_data.get('wo_number')
 
             jobcard, created = JobCard.objects.get_or_create(
@@ -499,13 +613,20 @@ def jobcard_prepopulate(request):
                 line=line,
                 shift=shift,
                 wo_number=wo_number,
-                defaults=form.cleaned_data
+                defaults={
+    **form.cleaned_data,
+    "supervisor_signature": profile.signature
+}
             )
 
             if not created:
                 for field, value in form.cleaned_data.items():
                     if field not in ['line', 'wo_number']:
                         setattr(jobcard, field, value)
+
+                # Copy supervisor's saved signature
+                jobcard.supervisor_signature = profile.signature
+
                 jobcard.save()
                 messages.success(request, f"JobCard for {line} WO {wo_number} ({shift}) updated.")
             else:
@@ -559,6 +680,10 @@ def get_jobcard(request):
         "target_quantity": job.target_quantity,
         "operator_names": job.operator_names,
         "supervisor_names": job.supervisor_names,
+        "supervisor_signature":
+    job.supervisor_signature.url
+    if job.supervisor_signature
+    else "",
         "hours": hours,
         "submitted": bool(job.is_submitted)
     })
@@ -694,7 +819,10 @@ def role_redirect(request):
 def user_management(request):
 
     if request.method == "POST":
-        form = UserCreateForm(request.POST)
+        form = UserCreateForm(
+            request.POST,
+            request.FILES
+        )
 
         if form.is_valid():
 
@@ -706,7 +834,8 @@ def user_management(request):
 
             UserProfile.objects.create(
                 user=user,
-                role=form.cleaned_data["role"]
+                role=form.cleaned_data["role"],
+                signature=form.cleaned_data["signature"]
             )
 
             messages.success(request, "User created successfully!")

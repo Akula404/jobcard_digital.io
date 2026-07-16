@@ -132,6 +132,8 @@ LOGIN_REDIRECT_URL = '/jobcard/redirect/'
 
 LOGOUT_REDIRECT_URL = '/jobcard/login/'
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 #postgresql://postgres.nffdugghmdjqjmomqiin:804%23%2FpoD%407%24@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true

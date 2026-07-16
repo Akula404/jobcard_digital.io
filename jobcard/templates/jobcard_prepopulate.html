@@ -179,8 +179,11 @@
         </div>
     {% endif %}
 
+
     <!-- Prepopulate Form -->
-    <form method="post" action="{% url 'jobcard:jobcard_prepopulate' %}">
+    <form method="post"
+        enctype="multipart/form-data"
+        action="{% url 'jobcard:jobcard_prepopulate' %}">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="submit-btn">Create JobCard</button>
@@ -216,7 +219,7 @@
             <option value="Night">Night</option>
         </select>
 
-        <button type="submit" class="load-btn">Export CSV</button>
+        <button type="submit" class="load-btn">Export Jobcards Excel</button>
     </form>
 </div>
 

@@ -116,7 +116,8 @@ textarea { min-height:60px; }
 
 </div>
 
-<form method="post">
+<form method="post"
+      enctype="multipart/form-data">
 {% csrf_token %}
 
 <!-- SELECT LINE + SHIFT -->
@@ -231,10 +232,30 @@ Total Output: <span id="totalOutput">0</span>
 <!-- Staff -->
 <div class="section staff">
 <h2>Operators & Supervisors</h2>
-{{ form.operator_names.label_tag }} {{ form.operator_names }}
-{{ form.supervisor_names.label_tag }} {{ form.supervisor_names }}
-{{ form.line_captain_signature.label_tag }} {{ form.line_captain_signature }}
-{{ form.supervisor_signature.label_tag }} {{ form.supervisor_signature }}
+
+{{ form.operator_names.label_tag }}
+{{ form.operator_names }}
+
+{{ form.supervisor_names.label_tag }}
+{{ form.supervisor_names }}
+
+<!-- Supervisor Signature (Read Only) -->
+<label>Supervisor Signature</label>
+
+<img
+    id="supervisor_signature_preview"
+    src=""
+    alt="Supervisor Signature"
+    style="max-height:80px; border:1px solid #ccc; padding:5px; display:none;">
+
+<!-- Line Captain Signature -->
+<label>Line Captain Signature</label>
+
+<img
+    id="line_captain_signature_preview"
+    src="{% if request.user.userprofile.signature %}{{ request.user.userprofile.signature.url }}{% endif %}"
+    style="max-height:80px; border:1px solid #ccc; padding:5px;">
+
 </div>
 
 <button type="submit" class="submit-btn" onclick="syncFields()">Submit</button>
@@ -311,6 +332,17 @@ function loadJobcard(){
         const supervisorField = document.getElementById("id_supervisor_names")
         operatorField.value = data.operator_names
         supervisorField.value = data.supervisor_names
+
+        const supervisorSignature =
+            document.getElementById("supervisor_signature_preview");
+
+        if (data.supervisor_signature) {
+            supervisorSignature.src = data.supervisor_signature;
+            supervisorSignature.style.display = "block";
+        } else {
+            supervisorSignature.style.display = "none";
+        }
+
         operatorField.readOnly = true
         supervisorField.readOnly = true
 

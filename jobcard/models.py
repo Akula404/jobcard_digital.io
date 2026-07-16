@@ -76,8 +76,17 @@ class JobCard(models.Model):
 
     operator_names = models.TextField()
     supervisor_names = models.TextField()
-    line_captain_signature = models.CharField(max_length=100)
-    supervisor_signature = models.CharField(max_length=100)
+    line_captain_signature = models.ImageField(
+        upload_to="signatures/line_captains/",
+        blank=True,
+        null=True
+    )
+
+    supervisor_signature = models.ImageField(
+        upload_to="signatures/supervisors/",
+        blank=True,
+        null=True
+    )
 
     # ✅ FIX: Normalize FL015 → FL014
     def save(self, *args, **kwargs):
@@ -240,18 +249,22 @@ class ActiveShift(models.Model):
     
 
 class UserProfile(models.Model):
+
     ROLE_CHOICES = [
         ('developer', 'Developer'),
         ('operator', 'Operator'),
         ('supervisor', 'Supervisor'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    user = models.OneToOneField(User,on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.role}"
-    
+    role = models.CharField(max_length=20,choices=ROLE_CHOICES)
+
+    signature = models.ImageField(
+        upload_to="user_signatures/",
+        blank=True,
+        null=True
+    )    
 
 # =====================================================
 # LINE INCIDENT / OPERATOR ALERT SYSTEM

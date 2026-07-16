@@ -7,7 +7,9 @@ from .models import JobCard, TempSubmission
 class JobCardForm(forms.ModelForm):
     class Meta:
         model = JobCard
-        fields = '__all__'  # include everything
+        exclude = [
+    "supervisor_signature",
+]
         widgets = {
             # Prepopulated / readonly fields (but still submitted)
             'date': forms.DateInput(attrs={'type': 'date', 'readonly': 'true'}),
@@ -33,8 +35,6 @@ class JobCardForm(forms.ModelForm):
             # Personnel
             'operator_names': forms.Textarea(attrs={'rows': 2}),
             'supervisor_names': forms.Textarea(attrs={'rows': 2}),
-            'line_captain_signature': forms.TextInput(),
-            'supervisor_signature': forms.TextInput(),
         }
 
 # -----------------------------
@@ -77,11 +77,40 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import UserProfile
 
-
 class UserCreateForm(forms.ModelForm):
-    role = forms.ChoiceField(choices=UserProfile.ROLE_CHOICES)
-    password = forms.CharField(widget=forms.PasswordInput)
+    role = forms.ChoiceField(
+        choices=UserProfile.ROLE_CHOICES
+    )
+
+    password = forms.CharField(
+        widget=forms.PasswordInput
+    )
+
+    signature = forms.ImageField(
+        required=False
+    )
 
     class Meta:
         model = User
-        fields = ["username", "email", "password"]
+        fields = [
+            "username",
+            "email",
+            "password",
+            "signature",
+        ]
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        user.set_password(self.cleaned_data["password"])
+
+        if commit:
+            user.save()
+
+            UserProfile.objects.create(
+                user=user,
+                role=self.cleaned_data["role"],
+                signature=self.cleaned_data["signature"]
+            )
+
+        return user
