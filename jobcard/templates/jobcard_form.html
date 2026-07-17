@@ -94,6 +94,15 @@ textarea { min-height:60px; }
 .submit-btn:hover { background:#2ecc71; }
 .total-output { margin-top:10px; font-weight:bold; color:#e67e22; }
 .load-btn { background:#2980b9;color:white;padding:10px;border:none;border-radius:6px;margin-top:10px;cursor:pointer }
+.signature-preview{
+    width:120px;
+    height:50px;
+    object-fit:contain;
+    border:1px solid #ccc;
+    padding:4px;
+    border-radius:4px;
+    background:#fff;
+}
 </style>
 </head>
 <body>
@@ -244,17 +253,17 @@ Total Output: <span id="totalOutput">0</span>
 
 <img
     id="supervisor_signature_preview"
+    class="signature-preview"
     src=""
     alt="Supervisor Signature"
-    style="max-height:80px; border:1px solid #ccc; padding:5px; display:none;">
+    style="display:none;">
 
-<!-- Line Captain Signature -->
 <label>Line Captain Signature</label>
 
 <img
     id="line_captain_signature_preview"
-    src="{% if request.user.userprofile.signature %}{{ request.user.userprofile.signature.url }}{% endif %}"
-    style="max-height:80px; border:1px solid #ccc; padding:5px;">
+    class="signature-preview"
+    src="{% if request.user.userprofile.signature %}{{ request.user.userprofile.signature.url }}{% endif %}">
 
 </div>
 

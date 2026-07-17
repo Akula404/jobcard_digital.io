@@ -54,12 +54,17 @@ def get_production_date(shift: str, current_time=None):
 # EXCEL EXPORT (OpenPyXL)
 # -----------------------------
 def export_jobcards_csv(request):
-    start_date = request.GET.get('start_date', timezone.localdate())
-    end_date = request.GET.get('end_date', timezone.localdate())
-    line = request.GET.get('line')
-    shift = request.GET.get('shift')
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    line = request.GET.get("line")
+    shift = request.GET.get("shift")
 
-    jobcards = JobCard.objects.filter(date__range=[start_date, end_date])
+    jobcards = JobCard.objects.all()
+    if start_date and end_date:
+        jobcards = jobcards.filter(
+            date__range=[start_date, end_date]
+        )
+
 
     if line:
         jobcards = jobcards.filter(line=line)

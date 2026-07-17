@@ -193,10 +193,10 @@
     <h2>Export JobCards</h2>
     <form method="get" action="{% url 'jobcard:export_jobcards_csv' %}">
         <label>Start Date:</label>
-        <input type="date" name="start_date" value="{{ today }}">
+        <input type="date" name="start_date">
 
         <label>End Date:</label>
-        <input type="date" name="end_date" value="{{ today }}">
+        <input type="date" name="end_date">
 
         <label>Line (optional):</label>
         <select name="line">
