@@ -13,7 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -----------------------------
 # SECURITY
 # -----------------------------
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'boi3p)6(tiqfu42076ob!m+0b5&sqnvp=u@5%f(3x+&ws&z9r^'  # fallback (dev only)
+)
 
 DEBUG = True  # ALWAYS False on Render
 CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
