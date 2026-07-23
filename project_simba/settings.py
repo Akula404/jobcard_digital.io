@@ -13,10 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -----------------------------
 # SECURITY
 # -----------------------------
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'sp=!wkx3&j03nyt*+q87_ezcoe#)a9s)*9npk8$a5-yl98229$'  # fallback (dev only)
-)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 DEBUG = True  # ALWAYS False on Render
 CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
@@ -136,4 +133,3 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-#postgresql://postgres.nffdugghmdjqjmomqiin:804%23%2FpoD%407%24@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true
