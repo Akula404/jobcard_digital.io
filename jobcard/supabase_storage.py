@@ -1,44 +1,57 @@
 import os
 import mimetypes
 
-from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
+from django.core.files.base import ContentFile
 from supabase import create_client
 
-print("========== SUPABASE DEBUG ==========")
-print("URL:", repr(os.getenv("SUPABASE_URL")))
-print("KEY:", "FOUND" if os.getenv("SUPABASE_SERVICE_KEY") else "MISSING")
-print("BUCKET:", repr(os.getenv("SUPABASE_BUCKET")))
-print("====================================")
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "signatures")
-
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 class SupabaseStorage(Storage):
 
-    def _save(self, name, content):
-        # Convert Windows paths to Unix paths
-        name = name.replace("\\", "/")
+    @property
+    def client(self):
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_SERVICE_KEY")
 
+        print("=" * 60)
+        print("SUPABASE_URL:", repr(url))
+        print("SUPABASE_SERVICE_KEY exists:", bool(key))
+        print("=" * 60)
+
+        if not url:
+            raise Exception("SUPABASE_URL environment variable is missing.")
+
+        if not key:
+            raise Exception("SUPABASE_SERVICE_KEY environment variable is missing.")
+
+        return create_client(url, key)
+
+    def _save(self, name, content):
+        name = name.replace("\\", "/")
         content.seek(0)
 
-        mime_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
+        mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
 
-        result = supabase.storage.from_(SUPABASE_BUCKET).upload(
+        self.client.storage.from_("signatures").upload(
             path=name,
             file=content.read(),
             file_options={
-                "content-type": mime_type,
+                "content-type": mime,
                 "upsert": "true",
             },
         )
 
         return name
 
+    def url(self, name):
+        return self.client.storage.from_("signatures").get_public_url(name)
+
+    def open(self, name, mode="rb"):
+        data = self.client.storage.from_("signatures").download(name)
+        return ContentFile(data)
+
     def delete(self, name):
-        supabase.storage.from_(SUPABASE_BUCKET).remove([name])
+        self.client.storage.from_("signatures").remove([name])
 
     def exists(self, name):
         return False
@@ -48,15 +61,3 @@ class SupabaseStorage(Storage):
 
     def get_available_name(self, name, max_length=None):
         return name
-
-    def open(self, name, mode="rb"):
-        data = supabase.storage.from_(SUPABASE_BUCKET).download(name)
-        return ContentFile(data)
-
-    def url(self, name):
-        result = supabase.storage.from_(SUPABASE_BUCKET).get_public_url(name)
-
-        if isinstance(result, dict):
-            return result["publicUrl"]
-
-        return result
