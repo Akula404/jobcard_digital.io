@@ -6,8 +6,8 @@ from django.core.files.storage import Storage
 
 from supabase import create_client
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "signatures")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
