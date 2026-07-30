@@ -24,6 +24,7 @@ CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
 
 ALLOWED_HOSTS = [
     'jobcardforms.onrender.com',
+    "jobcardforms-901c.onrender.com",
     'localhost',
     '127.0.0.1',
 ]
