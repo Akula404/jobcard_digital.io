@@ -3,16 +3,19 @@ import mimetypes
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
-
 from supabase import create_client
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "signatures")
+print("========== SUPABASE DEBUG ==========")
+print("URL:", repr(os.getenv("SUPABASE_URL")))
+print("KEY:", "FOUND" if os.getenv("SUPABASE_SERVICE_KEY") else "MISSING")
+print("BUCKET:", repr(os.getenv("SUPABASE_BUCKET")))
+print("====================================")
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "signatures")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
 class SupabaseStorage(Storage):
 
     def _save(self, name, content):
