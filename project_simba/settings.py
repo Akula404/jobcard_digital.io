@@ -3,7 +3,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv()  # Load environment variables from .env file
 
 # -----------------------------
 # BASE DIRECTORY
@@ -18,7 +18,7 @@ SECRET_KEY = os.environ.get(
     'boi3p)6(tiqfu42076ob!m+0b5&sqnvp=u@5%f(3x+&ws&z9r^'  # fallback (dev only)
 )
 
-DEBUG = True  # ALWAYS False on Render
+DEBUG = False  # ALWAYS False on Render
 CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
 
 
@@ -118,8 +118,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # -----------------------------
 # DEFAULT PK
 # -----------------------------
@@ -132,7 +130,16 @@ LOGIN_REDIRECT_URL = '/jobcard/redirect/'
 
 LOGOUT_REDIRECT_URL = '/jobcard/login/'
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
 
 
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "signatures")
+STORAGES = {
+    "default": {
+        "BACKEND": "jobcard.supabase_storage.SupabaseStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
