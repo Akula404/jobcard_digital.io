@@ -3,7 +3,8 @@ import profile
 import jobcard
 
 from .decorators import role_required
-from urllib import request
+import requests
+from io import BytesIO
 
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -75,6 +76,9 @@ def export_jobcards_csv(request):
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "JobCards"
+
+    # Cache downloaded signatures
+    signature_cache = {}
 
     header = [
         'Date','Line','Shift','WO Number','Product Code','Product Name','Target Quantity',
@@ -169,26 +173,61 @@ def export_jobcards_csv(request):
         # -------------------------
         if jc.supervisor_signature:
             try:
-                img = Image(jc.supervisor_signature.path)
-                img.width = 90
-                img.height = 45
-                sheet.add_image(img, f"AW{current_row}")
-                sheet.row_dimensions[current_row].height = 40
-            except Exception:
-                sheet[f"AW{current_row}"] = "Image Missing"
+                url = jc.supervisor_signature.url
 
+                if url not in signature_cache:
+
+                    response = requests.get(url, timeout=2)
+
+                    if response.status_code == 200:
+                        signature_cache[url] = response.content
+                    else:
+                        signature_cache[url] = None
+
+                if signature_cache[url]:
+
+                    img = Image(BytesIO(signature_cache[url]))
+                    img.width = 90
+                    img.height = 45
+
+                    sheet.add_image(img, f"AW{current_row}")
+                    sheet.row_dimensions[current_row].height = 40
+
+                else:
+                    sheet[f"AW{current_row}"] = "Signature Missing"
+
+            except Exception:
+                sheet[f"AW{current_row}"] = "Signature Missing"
         # -------------------------
         # Line Captain Signature
         # -------------------------
         if jc.line_captain_signature:
             try:
-                img = Image(jc.line_captain_signature.path)
-                img.width = 90
-                img.height = 45
-                sheet.add_image(img, f"AX{current_row}")
-                sheet.row_dimensions[current_row].height = 40
+                url = jc.line_captain_signature.url
+
+                if url not in signature_cache:
+
+                    response = requests.get(url, timeout=2)
+
+                    if response.status_code == 200:
+                        signature_cache[url] = response.content
+                    else:
+                        signature_cache[url] = None
+
+                if signature_cache[url]:
+
+                    img = Image(BytesIO(signature_cache[url]))
+                    img.width = 90
+                    img.height = 45
+
+                    sheet.add_image(img, f"AX{current_row}")
+                    sheet.row_dimensions[current_row].height = 40
+
+                else:
+                    sheet[f"AX{current_row}"] = "Signature Missing"
+
             except Exception:
-                sheet[f"AX{current_row}"] = "Image Missing"
+                sheet[f"AX{current_row}"] = "Signature Missing"
 
         current_row += 1
 
