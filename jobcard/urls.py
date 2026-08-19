@@ -1,6 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
+from .views_auth import login_view, verify_otp
 
 from .views import role_redirect
 
@@ -44,17 +45,42 @@ urlpatterns = [
     path("user/toggle/<int:user_id>/", views.toggle_user, name="toggle_user"),
     path("user/reset-password/<int:user_id>/", views.reset_password, name="reset_password"),    
 
-    path(
-    "login/",
-    auth_views.LoginView.as_view(template_name="registration/login.html"),
-    name="login"
-    ),
+        path(
+            "login/",
+            login_view,
+            name="login"
+        ),
 
-    path(
-        "logout/",
-        auth_views.LogoutView.as_view(next_page="/jobcard/login/"),
-        name="logout"
-    ),
+        path(
+            "change-password/",
+            auth_views.PasswordChangeView.as_view(
+                template_name="registration/password_change_form.html",
+                success_url="/jobcard/change-password/done/"
+            ),
+            name="change_password"
+        ),
+
+        path(
+            "change-password/done/",
+            auth_views.PasswordChangeDoneView.as_view(
+                template_name="registration/password_change_done.html"
+            ),
+            name="password_change_done"
+        ),
+
+        path(
+            "logout/",
+            auth_views.LogoutView.as_view(
+                next_page="/jobcard/login/"
+            ),
+            name="logout"
+        ),
+
+        path(
+            "verify-otp/",
+            verify_otp,
+            name="verify_otp"
+        ),
 
 
         path(
@@ -75,3 +101,6 @@ urlpatterns = [
         name="ack_alert"
     ),
 ]
+
+
+

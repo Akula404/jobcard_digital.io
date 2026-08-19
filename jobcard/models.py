@@ -339,3 +339,5 @@ class LineAlert(models.Model):
             f"{self.severity.upper()} | "
             f"{self.operator.username}"
         )
+
+

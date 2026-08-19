@@ -1,8 +1,10 @@
 import profile
-
+from .decorators import role_required
 import jobcard
 
-from .decorators import role_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
+from django.urls import reverse_lazy
 import requests
 from io import BytesIO
 
@@ -1128,3 +1130,17 @@ def acknowledge_alert(request, alert_id):
             "success": False,
             "error": "Alert not found"
         }, status=404)
+
+
+class ChangePasswordView(LoginRequiredMixin, PasswordChangeView):
+
+    template_name = "registration/password_change_form.html"
+
+    success_url = reverse_lazy(
+        "jobcard:password_change_done"
+    )
+
+
+class ChangePasswordDoneView(LoginRequiredMixin, PasswordChangeDoneView):
+
+    template_name = "registration/password_change_done.html"

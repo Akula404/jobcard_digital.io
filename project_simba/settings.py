@@ -18,7 +18,7 @@ SECRET_KEY = os.environ.get(
     'boi3p)6(tiqfu42076ob!m+0b5&sqnvp=u@5%f(3x+&ws&z9r^'  # fallback (dev only)
 )
 
-DEBUG = False # ALWAYS False on Render
+DEBUG = True # ALWAYS False on Render
 CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
 
 
@@ -144,3 +144,30 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+
+
+# -----------------------------
+# EMAIL - DEVELOPMENT
+# -----------------------------
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER
+)
+
+# # -----------------------------
+# # SESSION SETTINGS
+# # -----------------------------
+
+# SESSION_COOKIE_AGE = 12 * 60 * 60
+# SESSION_SAVE_EVERY_REQUEST = True

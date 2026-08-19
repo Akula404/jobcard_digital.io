@@ -63,6 +63,25 @@ body{
     font-weight:700;
     color:white;
 }
+.change-password-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 7px;
+    background: #f1f5f9;
+    color: #334155;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    transition: 0.2s;
+}
+
+.change-password-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
 
 /* =========================
    LOGOUT BUTTON (PRO)
@@ -238,32 +257,38 @@ body{
 <body>
 
 <!-- HEADER -->
-<div class="header">
-    <div>
-        <h1>Realtime Monitoring & Digital Jobcard System</h1>
-    </div>
-
-    <div class="user-box">
-        <div class="avatar">
-            {{ request.user.username|first|upper }}
+<div class="header"> 
+    <div> 
+        <h1>Realtime Monitoring & Digital Jobcard System</h1> 
+    </div> 
+ 
+    <div class="user-box"> 
+        <div class="avatar"> 
+            {{ request.user.username|first|upper }} 
+        </div> 
+ 
+        <div> 
+            <div style="font-size:12px;font-weight:600;"> 
+                {{ request.user.username }} 
+            </div> 
+            <div style="font-size:11px;color:#6b7280;"> 
+                {{ role|title }} 
+            </div> 
         </div>
 
-        <div>
-            <div style="font-size:12px;font-weight:600;">
-                {{ request.user.username }}
-            </div>
-            <div style="font-size:11px;color:#6b7280;">
-                {{ role|title }}
-            </div>
-        </div>
-
-        <form method="POST" action="/jobcard/logout/">
-            {% csrf_token %}
-            <button type="submit" class="logout-btn">
-                Logout
-            </button>
-        </form>
-    </div>
+        <!-- Change Password -->
+        <a href="{% url 'jobcard:change_password' %}" class="change-password-btn">
+            Change Password
+        </a>
+ 
+        <!-- Logout -->
+        <form method="POST" action="/jobcard/logout/" style="margin:0;"> 
+            {% csrf_token %} 
+            <button type="submit" class="logout-btn"> 
+                Logout 
+            </button> 
+        </form> 
+    </div> 
 </div>
 
 <!-- HERO -->
