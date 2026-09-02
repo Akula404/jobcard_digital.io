@@ -287,44 +287,27 @@ def login_view(request):
 
             resend.api_key = settings.RESEND_API_KEY
 
-            email_response = resend.Emails.send({
-                "from": settings.DEFAULT_FROM_EMAIL,
-
+            resend.Emails.send({
+                "from": "Digital Job Card System <onboarding@resend.dev>",
                 "to": [user.email],
-
                 "subject": "Your Digital Job Card verification code",
-
                 "html": f"""
                     <div style="font-family: Arial, sans-serif;">
-
                         <h2>Digital Job Card System</h2>
-
-                        <p>
-                            Hello {user.get_full_name() or user.username},
-                        </p>
-
-                        <p>
-                            Your verification code is:
-                        </p>
-
+                        <p>Hello {user.get_full_name() or user.username},</p>
+                        <p>Your verification code is:</p>
                         <h1>{otp}</h1>
-
+                        <p>This code will expire in 5 minutes.</p>
                         <p>
                             This code will expire in 5 minutes.
                         </p>
-
-                        <p>
-                            If you did not attempt to sign in,
-                            please contact the system administrator.
-                        </p>
-
                     </div>
                 """
             })
 
             logger.info(
                 "EMAIL OTP: Resend accepted email: %r",
-                email_response
+                user.email
             )
 
         except Exception as e:
