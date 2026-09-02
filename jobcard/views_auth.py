@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import secrets
 import logging
+import resend
 
 from django.conf import settings
 from django.contrib import messages
@@ -270,51 +271,67 @@ def login_view(request):
         )
 
         # ----------------------------------------------------
-        # SEND OTP
+        # SEND OTP USING RESEND
         # ----------------------------------------------------
 
         try:
 
             logger.info(
-                "EMAIL OTP: about to send email"
+                "EMAIL OTP: about to send email using Resend"
             )
+
+            if not settings.RESEND_API_KEY:
+                raise Exception(
+                    "RESEND_API_KEY is not configured."
+                )
+
+            resend.api_key = settings.RESEND_API_KEY
+
+            email_response = resend.Emails.send({
+                "from": settings.DEFAULT_FROM_EMAIL,
+
+                "to": [user.email],
+
+                "subject": "Your Digital Job Card verification code",
+
+                "html": f"""
+                    <div style="font-family: Arial, sans-serif;">
+
+                        <h2>Digital Job Card System</h2>
+
+                        <p>
+                            Hello {user.get_full_name() or user.username},
+                        </p>
+
+                        <p>
+                            Your verification code is:
+                        </p>
+
+                        <h1>{otp}</h1>
+
+                        <p>
+                            This code will expire in 5 minutes.
+                        </p>
+
+                        <p>
+                            If you did not attempt to sign in,
+                            please contact the system administrator.
+                        </p>
+
+                    </div>
+                """
+            })
 
             logger.info(
-                "EMAIL CONFIG: host=%r port=%r user_configured=%s",
-                settings.EMAIL_HOST,
-                settings.EMAIL_PORT,
-                bool(settings.EMAIL_HOST_USER)
-            )
-
-            send_mail(
-                subject="Your Digital Job Card verification code",
-
-                message=(
-                    f"Hello {user.get_full_name() or user.username},\n\n"
-                    f"Your verification code is: {otp}\n\n"
-                    f"This code will expire in 5 minutes.\n\n"
-                    f"If you did not attempt to sign in, please contact "
-                    f"the system administrator."
-                ),
-
-                from_email=settings.DEFAULT_FROM_EMAIL,
-
-                recipient_list=[user.email],
-
-                fail_silently=False,
-            )
-
-            logger.info(
-                "EMAIL OTP: email sent successfully"
+                "EMAIL OTP: Resend accepted email: %r",
+                email_response
             )
 
         except Exception as e:
 
             logger.exception(
-                "EMAIL OTP ERROR"
+                "RESEND EMAIL OTP ERROR"
             )
-
-            # Clear OTP session data
 
             request.session.pop("otp_user_id", None)
             request.session.pop("otp_hash", None)
