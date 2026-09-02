@@ -152,17 +152,22 @@ STORAGES = {
 
 
 
-# -----------------------------
-# EMAIL - DEVELOPMENT
-# -----------------------------
+# ============================================================
+# EMAIL / SMTP
+# ============================================================
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = os.environ.get("EMAIL_HOST")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+
+EMAIL_PORT = int(
+    os.environ.get("EMAIL_PORT", "587")
+)
+
 EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.environ.get(
@@ -170,9 +175,12 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     EMAIL_HOST_USER
 )
 
+# Prevent SMTP from hanging indefinitely on Render
+EMAIL_TIMEOUT = 20
+
 # # -----------------------------
 # # SESSION SETTINGS
 # # -----------------------------
 
-# SESSION_COOKIE_AGE = 12 * 60 * 60
-# SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 12 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True

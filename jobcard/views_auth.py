@@ -279,6 +279,13 @@ def login_view(request):
                 "EMAIL OTP: about to send email"
             )
 
+            logger.info(
+                "EMAIL CONFIG: host=%r port=%r user_configured=%s",
+                settings.EMAIL_HOST,
+                settings.EMAIL_PORT,
+                bool(settings.EMAIL_HOST_USER)
+            )
+
             send_mail(
                 subject="Your Digital Job Card verification code",
 
@@ -319,9 +326,14 @@ def login_view(request):
                 request,
                 "registration/login.html",
                 {
-                    "error": f"Email error: {e}"
+                    "error": (
+                        "Unable to send verification email. "
+                        f"Email server error: {e}"
+                    )
                 }
             )
+
+           
 
         # ----------------------------------------------------
         # REDIRECT TO OTP PAGE
