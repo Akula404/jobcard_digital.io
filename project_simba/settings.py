@@ -18,15 +18,20 @@ SECRET_KEY = os.environ.get(
     'boi3p)6(tiqfu42076ob!m+0b5&sqnvp=u@5%f(3x+&ws&z9r^'  # fallback (dev only)
 )
 
-DEBUG = True # ALWAYS False on Render
+DEBUG = False # ALWAYS False on Render
 CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
 
 
 ALLOWED_HOSTS = [
-    'jobcardforms.onrender.com',
+    "jobcardforms.onrender.com",
     "jobcardforms-901c.onrender.com",
-    'localhost',
-    '127.0.0.1',
+    "localhost",
+    "127.0.0.1",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://jobcardforms.onrender.com",
+    "https://jobcardforms-901c.onrender.com",
 ]
 
 # -----------------------------
