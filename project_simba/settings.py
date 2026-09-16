@@ -3,7 +3,7 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 
 # -----------------------------
 # BASE DIRECTORY
@@ -18,20 +18,14 @@ SECRET_KEY = os.environ.get(
     'boi3p)6(tiqfu42076ob!m+0b5&sqnvp=u@5%f(3x+&ws&z9r^'  # fallback (dev only)
 )
 
-DEBUG = False # ALWAYS False on Render
+DEBUG = True  # ALWAYS False on Render
 CSRF_FAILURE_VIEW = "jobcard.csrf.csrf_failure"
 
 
 ALLOWED_HOSTS = [
-    "jobcardforms.onrender.com",
-    "jobcardforms-901c.onrender.com",
-    "localhost",
-    "127.0.0.1",
-]
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://jobcardforms.onrender.com",
-    "https://jobcardforms-901c.onrender.com",
+    'jobcardforms-901c.onrender.com',
+    'localhost',
+    '127.0.0.1',
 ]
 
 # -----------------------------
@@ -124,6 +118,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # -----------------------------
 # DEFAULT PK
 # -----------------------------
@@ -136,39 +132,7 @@ LOGIN_REDIRECT_URL = '/jobcard/redirect/'
 
 LOGOUT_REDIRECT_URL = '/jobcard/login/'
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
-SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "signatures")
-STORAGES = {
-    "default": {
-        "BACKEND": "jobcard.supabase_storage.SupabaseStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-
-
-
-# ============================================================
-# EMAIL - RESEND
-# ============================================================
-
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL",
-    "Digital Job Card System <onboarding@resend.dev>"
-)
-
-# Prevent SMTP from hanging indefinitely on Render
-EMAIL_TIMEOUT = 20
-
-# # -----------------------------
-# # SESSION SETTINGS
-# # -----------------------------
-
-SESSION_COOKIE_AGE = 12 * 60 * 60
-SESSION_SAVE_EVERY_REQUEST = True

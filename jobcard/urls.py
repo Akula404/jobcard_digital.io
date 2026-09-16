@@ -1,8 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
-from .views_auth import login_view, verify_otp
-
+from .views_auth import login_view
 from .views import role_redirect
 
 app_name = 'jobcard'
@@ -76,11 +75,11 @@ urlpatterns = [
             name="logout"
         ),
 
-        path(
-            "verify-otp/",
-            verify_otp,
-            name="verify_otp"
-        ),
+        # path(
+        #     "verify-otp/",
+        #     verify_otp,
+        #     name="verify_otp"
+        # ),
 
 
         path(
